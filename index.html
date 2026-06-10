@@ -322,11 +322,29 @@
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, doc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // AI Copy 기능에서 에러를 방지하기 위해 생성된 카피들을 저장하는 전역 배열
+        window.currentCopyIdeas = [];
+
         function showMsg(msg) {
             const toast = document.getElementById('toast-message');
             toast.innerText = msg;
             toast.classList.remove('opacity-0', 'translate-y-4');
             setTimeout(() => toast.classList.add('opacity-0', 'translate-y-4'), 3000);
+        }
+
+        // --- AI 응답에서 JSON 데이터만 안전하게 뽑아내는 강력한 파서 ---
+        function parseAIJSON(rawText) {
+            try {
+                const clean = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
+                return JSON.parse(clean);
+            } catch (e) {
+                try {
+                    // 앞뒤에 사람의 말이 붙어있을 경우 대괄호나 중괄호 안의 내용만 정규식으로 추출
+                    const match = rawText.match(/\[[\s\S]*\]|\{[\s\S]*\}/);
+                    if (match) return JSON.parse(match[0]);
+                } catch (err) {}
+                throw new Error("AI가 데이터 형식을 벗어난 답변을 보냈습니다.");
+            }
         }
 
         window.toggleSettings = function() {
@@ -423,17 +441,27 @@
             showMsg("API 키가 컴퓨터 브라우저에 안전하게 저장되었습니다!");
         };
 
+        // --- 궁극의 에러 방지 통신 로직 (강제 우회 + 3.0 최고 성능 지원) ---
         async function requestGemini(promptText, imagesBase64 = []) {
-            const activeKey = localStorage.getItem('gemini_api_key') || apiKey;
-            
-            if (!activeKey) {
-                showMsg("AI 기능을 위해 SETTINGS에서 Gemini API 키를 확인해주세요!");
-                toggleSettings();
-                throw new Error("Gemini API Key Missing");
-            }
+            let activeKey = localStorage.getItem('gemini_api_key');
+            if (!activeKey) activeKey = apiKey;
 
-            let models = ["gemini-2.5-flash-preview-09-2025", "gemini-1.5-flash"];
-            let lastError = "API FAILED";
+            // 질문자님의 키가 지원하는 "가장 최신/최고 성능" 3.0부터 순서대로 시도하는 스마트 폴백!
+            let models = [];
+            if (!localStorage.getItem('gemini_api_key')) {
+                models = ["gemini-2.5-flash-preview-09-2025"]; 
+            } else {
+                models = [
+                    "gemini-3.0-pro",       // 1순위: 현존 최고 성능 3.0 Pro
+                    "gemini-3.0-flash",     // 2순위: 3.0 Flash
+                    "gemini-2.5-pro",       // 3순위: 2.5 Pro
+                    "gemini-2.5-flash",
+                    "gemini-2.0-pro",       // 4순위: 2.0 Pro
+                    "gemini-2.0-flash",
+                    "gemini-1.5-pro",       // 5순위: 안전한 백업용 Pro
+                    "gemini-1.5-flash"      // 최후의 보루
+                ];
+            }
 
             const parts = [{ text: promptText }];
             imagesBase64.forEach(b64 => {
@@ -443,30 +471,58 @@
                     parts.push({ inlineData: { mimeType, data } });
                 } catch(e) {}
             });
-
+            
+            const payload = JSON.stringify({ contents: [{ parts: parts }] });
+            const delays = [1000, 2000, 4000]; // 실패 시 1초, 2초, 4초 대기 후 재시도
+            let lastError = "API 통신 불가";
+            
             for (const model of models) {
-                try {
-                    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeKey}`;
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contents: [{ parts: parts }] })
-                    });
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data?.candidates?.[0]?.content?.parts?.[0]?.text) {
-                            return data.candidates[0].content.parts[0].text;
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeKey}`;
+                
+                // 각 모델당 최대 3번 시도
+                for (let attempt = 0; attempt <= 3; attempt++) {
+                    try {
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: payload
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data?.candidates?.[0]?.finishReason === 'SAFETY') {
+                                throw new Error("안전 필터에 의해 AI 생성이 차단되었습니다.");
+                            }
+                            if (data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+                                return data.candidates[0].content.parts[0].text;
+                            }
+                            throw new Error("응답이 비어있습니다.");
+                        } else {
+                            const errText = await response.text();
+                            lastError = errText;
+                            
+                            // 400(형식 오류) 또는 404(모델 권한 없음)는 현재 모델에서 실패한 것이므로
+                            // 쓸데없이 재시도하지 않고 즉시 루프를 깨고 다음 성능의 모델로 넘어감
+                            if (response.status === 400 || response.status === 404) {
+                                break; 
+                            }
+                            // 403(API 키 오류)는 즉시 완전 중단
+                            if (response.status === 403) {
+                                throw new Error("API 키 권한 오류 (403). 올바른 키인지 확인해주세요."); 
+                            }
                         }
-                    } else {
-                        const errText = await response.text();
-                        lastError = errText;
+                    } catch (e) {
+                        lastError = e.message;
+                        if (e.message.includes("403")) throw e;
                     }
-                } catch (e) {
-                    lastError = e.message;
+                    
+                    // 서버 트래픽 문제일 경우 대기 후 다시 시도 (break로 빠져나오지 않은 경우만 실행됨)
+                    if (attempt < 3) {
+                        await new Promise(res => setTimeout(res, delays[attempt] || 2000));
+                    }
                 }
             }
-            throw new Error(lastError);
+            throw new Error(`통신 실패: ${lastError}`);
         }
 
         const firebaseConfig = {
@@ -587,10 +643,11 @@
             const contents = await zip.loadAsync(new Uint8Array(arrayBuffer));
             const imageFiles = Object.keys(contents.files).filter(name => name.startsWith('ppt/media/') && name.match(/\.(png|jpe?g|gif|webp)$/i)).sort();
             let imagesBase64 = [];
-            for (let i = 0; i < Math.min(imageFiles.length, 12); i++) {
+            // DB 1MB 용량 제한을 피하기 위해 추출 이미지를 8장으로 줄이고 해상도를 400px로 낮춤
+            for (let i = 0; i < Math.min(imageFiles.length, 8); i++) {
                 try {
                     const blob = await contents.files[imageFiles[i]].async('blob');
-                    const b64 = await compressImage(blob, 600);
+                    const b64 = await compressImage(blob, 400); 
                     if (b64) imagesBase64.push(b64);
                 } catch (e) {}
             }
@@ -640,7 +697,7 @@
 
         analyzeSaveBtn.addEventListener('click', async () => {
             if(!currentUser) { toggleSettings(); return showMsg("DB 연결 필요"); }
-            analyzeSaveBtn.disabled = true; let successCount = 0;
+            analyzeSaveBtn.disabled = true; let successCount = 0; let lastErrorMsg = "";
             for(let i=0; i<extractedFilesBatch.length; i++) {
                 const fileObj = extractedFilesBatch[i];
                 analyzeSaveBtn.innerText = `AI 분석 중 [${i+1}/${extractedFilesBatch.length}]...`;
@@ -667,7 +724,7 @@
                         analysisObj = { ...analysisObj, ...parsed };
                     } catch (jsonErr) {}
 
-                    const finalizedCopy = cleanCopyText(analysisObj.manifesto_copy || fileObj.text);
+                    const finalizedCopy = cleanCopyText(analysisObj.manifesto_copy || fileObj.text) || "";
 
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'ad_archive'), {
                         brand: analysisObj.brand || "미상", category: analysisObj.category || "ETC", summary: analysisObj.summary || "",
@@ -676,10 +733,19 @@
                         creative_strategy: analysisObj.creative_strategy || "", images: fileObj.imagesBase64, timestamp: new Date().toISOString()
                     });
                     successCount++;
-                } catch (e) {}
+                } catch (e) {
+                    console.error("DB 저장 에러:", e);
+                    lastErrorMsg = e.message;
+                }
             }
             analyzeSaveBtn.disabled = false; analyzeSaveBtn.innerText = "아카이브에 저장하기";
-            if (successCount > 0) { resultsContainer.classList.add('hidden'); showMsg(`성공적으로 ${successCount}개 저장!`); switchTab('archive'); }
+            if (successCount > 0) { 
+                resultsContainer.classList.add('hidden'); 
+                showMsg(`성공적으로 ${successCount}개 저장!`); 
+                switchTab('archive'); 
+            } else {
+                showMsg(`저장 실패: ${lastErrorMsg || "용량 초과 또는 통신 오류"}`);
+            }
         });
 
         function renderArchiveGrid() {
@@ -843,15 +909,17 @@
             try {
                 const promptReq = `Analyze this storyboard frame carefully. Break down the visual elements into specific prompt generation categories in KOREAN. You MUST return the result in JSON format ONLY: { "subject": "인물, 피사체, 외모, 의상, 표정, 포즈 등 (한국어)", "background": "배경, 장소, 시간대, 날씨, 주변 소품 등 (한국어)", "camera": "카메라 앵글, 렌즈 종류, 조명(Lighting) 스타일, 색감 등 (한국어)", "full_ko": "위 모든 요소를 종합하여 GenSpark 등 AI 이미지 생성기에 그대로 복사해서 붙여넣을 수 있는 '자연스러운 한 문단의 완성된 한국어 프롬프트' (한국어)" }`;
                 const aiPromptRaw = await requestGemini(promptReq, [base64Img]);
-                let parsed = {};
-                try { parsed = JSON.parse(aiPromptRaw.replace(/```json/g, "").replace(/```/g, "").trim()); } 
-                catch(e) { parsed = { full_ko: "JSON 파싱에 실패했습니다." }; }
+                
+                // 강력한 파서 적용
+                let parsed = parseAIJSON(aiPromptRaw);
+                
                 document.getElementById('prompt-subject').value = parsed.subject || '분석 결과 없음';
                 document.getElementById('prompt-background').value = parsed.background || '분석 결과 없음';
                 document.getElementById('prompt-camera').value = parsed.camera || '분석 결과 없음';
                 document.getElementById('prompt-full-ko').value = parsed.full_ko || '';
             } catch(e) {
-                document.getElementById('prompt-full-ko').value = "프롬프트 생성 실패: 통신 오류입니다. 다시 시도해 주세요.";
+                // 사용자에게 정확한 에러 원인 표기
+                document.getElementById('prompt-full-ko').value = `프롬프트 생성 실패: ${e.message}\n잠시 후 다시 시도해 주세요.`;
             } finally { loader.classList.add('hidden'); }
         };
 
@@ -899,22 +967,26 @@
         document.getElementById('find-visual-btn').addEventListener('click', async () => {
             const draft = document.getElementById('draft-copy-input').value.trim();
             if(!draft) return showMsg("카피 초안을 입력해주세요.");
+            if(!archiveData.length) return showMsg("아카이브 데이터가 없습니다. 먼저 PPT를 업로드해 주세요.");
+            
             document.getElementById('recommend-loading').classList.remove('hidden');
             const gridWrapper = document.getElementById('recommend-grid');
             const grid = document.getElementById('moodboard-container');
             gridWrapper.classList.add('hidden'); grid.innerHTML = '';
             
             try {
-                // 여러 개의 캠페인을 추천받기 위해 프롬프트 구조 완전 개선
-                const prompt = `사용자가 작성 중인 기획안: "${draft}"\n[아카이브 데이터]:\n${JSON.stringify(archiveData.map(a=>({id: a.id, brand: a.brand, summary: a.summary})))}\n위 아카이브 데이터에서 브랜드명과 상관없이, 기획안의 메시지나 분위기를 시각적으로 가장 잘 표현할 수 있는 캠페인 ID를 최소 4개에서 최대 8개까지 다양하게 골라주세요. 반드시 아래의 JSON 배열 형식으로만 응답하세요:\n["id1", "id2", "id3", ...]`;
+                // 토큰 초과를 막기 위해 최대 100개 캠페인까지만 스캔
+                const safeArchive = archiveData.slice(0, 100).map(a=>({id: a.id, brand: a.brand, summary: a.summary}));
+                const prompt = `사용자가 작성 중인 기획안: "${draft}"\n[아카이브 데이터]:\n${JSON.stringify(safeArchive)}\n위 아카이브 데이터에서 브랜드명과 상관없이, 기획안의 메시지나 분위기를 시각적으로 가장 잘 표현할 수 있는 캠페인 ID를 최소 4개에서 최대 8개까지 다양하게 골라주세요. 반드시 아래의 JSON 배열 형식으로만 응답하세요:\n["id1", "id2", "id3", ...]`;
+                
                 const resTextRaw = await requestGemini(prompt);
-                let recommendedIds = JSON.parse(resTextRaw.replace(/```json/g, "").replace(/```/g, "").trim());
+                // 강력한 파서 적용
+                let recommendedIds = parseAIJSON(resTextRaw);
                 
                 let moodboardHtml = '';
                 recommendedIds.forEach(id => {
                     const ad = archiveData.find(a=>a.id === id);
                     if(ad && ad.images && ad.images.length > 0) {
-                        // 추천된 각 캠페인에서 이미지를 1~2장씩 뽑아서 무드보드 구성
                         ad.images.slice(0, 2).forEach((imgUrl, imgIdx) => {
                             moodboardHtml += `
                                 <div class="relative w-full aspect-video rounded-lg overflow-hidden border border-gray-800 shadow-md group cursor-pointer" onclick="generateImagePrompt('${ad.id}', ${imgIdx})">
@@ -931,31 +1003,33 @@
                 grid.innerHTML = moodboardHtml || '<p class="text-gray-500 text-xs">매칭되는 이미지가 없습니다.</p>';
                 gridWrapper.classList.remove('hidden');
             } catch(e) {
-                showMsg("비주얼 추천 중 오류가 발생했습니다.");
+                showMsg(`비주얼 추천 오류: ${e.message}`);
             }
             document.getElementById('recommend-loading').classList.add('hidden');
         });
 
-        // 2. Find Copy: 아카이브에서 다양한 브랜드의 실제 카피를 검색 -> 클릭 시 타겟 브랜드 톤으로 즉각 변환
         // 2. Find Copy: 아카이브에서 다수 브랜드의 카피 추천 -> 클릭 시 타겟 브랜드 톤으로 즉각 변환
         document.getElementById('find-copy-btn').addEventListener('click', async () => {
             const draft = document.getElementById('draft-visual-input').value.trim();
             if(!draft) return showMsg("비주얼 느낌이나 컨셉을 입력해주세요.");
+            if(!archiveData.length) return showMsg("아카이브 데이터가 없습니다. 먼저 PPT를 업로드해 주세요.");
+            
             document.getElementById('aicopy-recommend-loading').classList.remove('hidden');
             const grid = document.getElementById('aicopy-recommend-grid');
             grid.classList.add('hidden'); grid.innerHTML = '';
             
             try {
-                // 아카이브에서 '서로 다른 브랜드'의 카피를 찾아오도록 프롬프트 전면 수정
-                const prompt = `사용자가 원하는 카피 느낌/컨셉: "${draft}"\n[아카이브 데이터]: \n${JSON.stringify(archiveData.map(a=>({id:a.id, brand:a.brand, copy:a.manifesto_copy})))}\n위 아카이브에서 사용자가 원하는 느낌과 가장 잘 어울리는 '1줄짜리 핵심 카피(Headline)'를 찾아주세요. **반드시 서로 다른 브랜드의 캠페인에서 4~5개를 골라야 합니다.** (같은 브랜드 중복 추천 절대 금지)\n반드시 아래 JSON 배열 형식으로만 응답:\n[{"id": "원본캠페인id", "brand": "원본브랜드명", "line": "추출한 1줄 카피", "reason": "추천 이유"}]`;
+                const safeArchive = archiveData.slice(0, 100).map(a=>({id:a.id, brand:a.brand, copy:a.manifesto_copy}));
+                const prompt = `사용자가 원하는 카피 느낌/컨셉: "${draft}"\n[아카이브 데이터]: \n${JSON.stringify(safeArchive)}\n위 아카이브에서 사용자가 원하는 느낌과 가장 잘 어울리는 '1줄짜리 핵심 카피(Headline)'를 찾아주세요. **반드시 서로 다른 브랜드의 캠페인에서 4~5개를 골라야 합니다.** (같은 브랜드 중복 추천 절대 금지)\n반드시 아래 JSON 배열 형식으로만 응답:\n[{"id": "원본캠페인id", "brand": "원본브랜드명", "line": "추출한 1줄 카피", "reason": "추천 이유"}]`;
+                
                 const resTextRaw = await requestGemini(prompt);
-                let list = JSON.parse(resTextRaw.replace(/```json/g, "").replace(/```/g, "").trim());
+                // 강력한 파서 적용
+                let list = parseAIJSON(resTextRaw);
                 if (!Array.isArray(list)) list = [list];
                 
                 let copyHtml = '<p class="text-xs text-gray-500 mb-2 font-bold tracking-widest uppercase">✨ Select to adapt for your brand</p>';
                 list.forEach((rec, index) => {
                     const line = rec.line;
-                    // 카피 클릭 시 펼쳐지는 아코디언 브랜드 변환기 UI
                     copyHtml += `
                         <div class="bg-black p-5 rounded-xl border border-gray-800 hover:border-purple-500/50 transition-colors shadow-lg">
                             <div class="cursor-pointer flex flex-col group" onclick="document.getElementById('adapt-box-${index}').classList.toggle('hidden')">
@@ -981,7 +1055,7 @@
                 grid.innerHTML = copyHtml;
                 grid.classList.remove('hidden');
             } catch(e) {
-                showMsg("카피 추천 중 오류가 발생했습니다.");
+                showMsg(`카피 추천 오류: ${e.message}`);
             }
             document.getElementById('aicopy-recommend-loading').classList.add('hidden');
         });
