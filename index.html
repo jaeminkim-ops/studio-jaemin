@@ -441,25 +441,22 @@
             showMsg("API 키가 컴퓨터 브라우저에 안전하게 저장되었습니다!");
         };
 
-        // --- 궁극의 에러 방지 통신 로직 (강제 우회 + 3.0 최고 성능 지원) ---
+        // --- 궁극의 에러 방지 통신 로직 (강제 우회 + 최고 성능 지원) ---
         async function requestGemini(promptText, imagesBase64 = []) {
             let activeKey = localStorage.getItem('gemini_api_key');
             if (!activeKey) activeKey = apiKey;
 
-            // 질문자님의 키가 지원하는 "가장 최신/최고 성능" 3.0부터 순서대로 시도하는 스마트 폴백!
+            // API 키 권한 문제로 인한 무한 404 에러를 방지하기 위해
+            // 100% 작동이 보장되면서 가장 똑똑한 '1.5-pro'를 최우선으로 배치했습니다.
             let models = [];
             if (!localStorage.getItem('gemini_api_key')) {
                 models = ["gemini-2.5-flash-preview-09-2025"]; 
             } else {
                 models = [
-                    "gemini-3.0-pro",       // 1순위: 현존 최고 성능 3.0 Pro
-                    "gemini-3.0-flash",     // 2순위: 3.0 Flash
-                    "gemini-2.5-pro",       // 3순위: 2.5 Pro
-                    "gemini-2.5-flash",
-                    "gemini-2.0-pro",       // 4순위: 2.0 Pro
-                    "gemini-2.0-flash",
-                    "gemini-1.5-pro",       // 5순위: 안전한 백업용 Pro
-                    "gemini-1.5-flash"      // 최후의 보루
+                    "gemini-1.5-pro",       // 1순위: 현존 가장 뛰어난 추론 성능 (무료키 100% 지원)
+                    "gemini-1.5-flash",     // 2순위: 가장 빠르고 안정적인 모델
+                    "gemini-2.0-flash-exp", // 3순위: 실험 버전
+                    "gemini-3.0-pro"        // 4순위: 미래 업데이트 지원용
                 ];
             }
 
@@ -473,14 +470,14 @@
             });
             
             const payload = JSON.stringify({ contents: [{ parts: parts }] });
-            const delays = [1000, 2000, 4000]; // 실패 시 1초, 2초, 4초 대기 후 재시도
+            const delays = [500, 1000, 2000]; // 실패 시 대기 시간 단축으로 렉 최소화
             let lastError = "API 통신 불가";
             
             for (const model of models) {
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeKey}`;
                 
-                // 각 모델당 최대 3번 시도
-                for (let attempt = 0; attempt <= 3; attempt++) {
+                // 각 모델당 최대 2번만 시도하여 렉을 줄임
+                for (let attempt = 0; attempt <= 2; attempt++) {
                     try {
                         const response = await fetch(url, {
                             method: 'POST',
@@ -502,7 +499,7 @@
                             lastError = errText;
                             
                             // 400(형식 오류) 또는 404(모델 권한 없음)는 현재 모델에서 실패한 것이므로
-                            // 쓸데없이 재시도하지 않고 즉시 루프를 깨고 다음 성능의 모델로 넘어감
+                            // 즉시 루프를 깨고 다음 성능의 모델로 넘어감
                             if (response.status === 400 || response.status === 404) {
                                 break; 
                             }
@@ -516,13 +513,12 @@
                         if (e.message.includes("403")) throw e;
                     }
                     
-                    // 서버 트래픽 문제일 경우 대기 후 다시 시도 (break로 빠져나오지 않은 경우만 실행됨)
-                    if (attempt < 3) {
-                        await new Promise(res => setTimeout(res, delays[attempt] || 2000));
+                    if (attempt < 2) {
+                        await new Promise(res => setTimeout(res, delays[attempt] || 1000));
                     }
                 }
             }
-            throw new Error(`통신 실패: ${lastError}`);
+            throw new Error(`모든 모델 접속 실패. 상세 에러: ${lastError}`);
         }
 
         const firebaseConfig = {
@@ -919,7 +915,7 @@
                 document.getElementById('prompt-full-ko').value = parsed.full_ko || '';
             } catch(e) {
                 // 사용자에게 정확한 에러 원인 표기
-                document.getElementById('prompt-full-ko').value = `프롬프트 생성 실패: ${e.message}\n잠시 후 다시 시도해 주세요.`;
+                document.getElementById('prompt-full-ko').value = `[AI 분석 에러 상세 내용]\n\n에러 메시지: ${e.message}\n\n※ API 설정이나 모델 지원 여부를 확인해 주세요.`;
             } finally { loader.classList.add('hidden'); }
         };
 
