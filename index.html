@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JAEMIN STUDIO | TVCF Visual & Copy Archive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital@1&display=swap');
+        
+        body { 
+            font-family: 'Pretendard', sans-serif; 
+            background-color: #050505; 
+            color: #f8f9fa; 
+            overflow-x: hidden;
+        }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        
+        .drag-over { background-color: rgba(6, 182, 212, 0.05) !important; border-color: #06b6d4 !important; }
+        
+        .loader {
+            border: 3px solid #333; border-top: 3px solid #06b6d4;
+            border-radius: 50%; width: 24px; height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .ghost-btn {
+            border: 1px solid rgba(255,255,255,0.2); border-radius: 9999px;
+            background: transparent; transition: all 0.3s ease; color: white;
+        }
+        .ghost-btn:hover { background: white; color: black; border-color: white; }
+
+        /* --- 팝캣 마우스 추적 및 사방 블랙홀 애니메이션 --- */
+        #cat-wrapper {
+            position: absolute;
+            pointer-events: none;
+            z-index: 50;
+            transition: left 0.1s ease-out, top 0.1s ease-out;
+        }
+        
+        #cat-scaler {
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+        }
+        
+        .is-active #cat-scaler {
+            transform: translate(-50%, -50%) scale(1.1);
+            opacity: 1;
+        }
+
+        .file-particle {
+            position: absolute;
+            font-size: 28px;
+            opacity: 0;
+            left: 50%;
+            top: 50%;
+            pointer-events: none;
+            filter: drop-shadow(0 0 10px rgba(6,182,212,0.9));
+            z-index: 60;
+        }
+        
+        @keyframes suck-file {
+            0% { 
+                transform: translate(calc(-50% + var(--startX)), calc(-50% + var(--startY))) scale(1.5) rotate(var(--startRot)); 
+                opacity: 0; 
+            }
+            20% { opacity: 1; }
+            100% { 
+                transform: translate(-50%, -10px) scale(0) rotate(var(--endRot)); 
+                opacity: 0; 
+            }
+        }
+
+        /* --- 렌더링 최적화 클래스 --- */
+        .render-optimize {
+            content-visibility: auto;
+            contain-intrinsic-size: 1px 400px;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-cyan-500 selection:text-white pb-20">
+
+    <!-- 헤더 -->
+    <header class="bg-[#050505]/90 backdrop-blur-md text-white w-full sticky top-0 z-50 border-b border-gray-900">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+            <h1 class="text-xl font-black tracking-tighter cursor-pointer hover:text-cyan-400 transition-colors">
+                JAEMIN STUDIO<span class="text-cyan-400">.</span>
+            </h1>
+            
+            <nav class="hidden md:flex gap-8 text-[11px] font-bold tracking-[0.2em]">
+                <button id="nav-extract" class="uppercase text-cyan-400 transition-colors" onclick="switchTab('extract')">WORK</button>
+                <button id="nav-archive" class="uppercase text-gray-500 hover:text-white transition-colors" onclick="switchTab('archive')">ARCHIVE</button>
+                <button id="nav-visual" class="uppercase text-gray-500 hover:text-white transition-colors" onclick="switchTab('visual')">VISUAL</button>
+                <button id="nav-copy" class="uppercase text-gray-500 hover:text-white transition-colors" onclick="switchTab('copy')">COPY</button>
+                <button id="nav-aistudio" class="uppercase text-gray-500 hover:text-white transition-colors" onclick="switchTab('aistudio')">AI STUDIO</button>
+            </nav>
+
+            <button onclick="toggleSettings()" class="text-gray-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-bold tracking-widest">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                SETTINGS
+            </button>
+        </div>
+    </header>
+
+    <!-- 설정 패널 -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/80 z-[200] hidden items-center justify-center backdrop-blur-sm">
+        <div class="bg-[#111] border border-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl relative">
+            <button onclick="toggleSettings()" class="absolute top-4 right-4 text-gray-500 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            <h2 class="text-xl font-bold text-white mb-6 tracking-widest">SYSTEM SETTINGS</h2>
+            
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <span class="text-sm font-bold text-gray-400">DATABASE</span>
+                    <span id="auth-status" class="flex items-center gap-2 text-sm text-yellow-500"><div class="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>연결중...</span>
+                </div>
+                <div id="db-error-msg" class="text-xs text-red-400 mt-2 hidden bg-red-500/10 p-3 rounded-lg border border-red-500/20"></div>
+                
+                <div class="border-t border-gray-800 pt-6 mt-4">
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">GEMINI API KEY</label>
+                    <div class="flex gap-2">
+                        <input type="password" id="gemini-key-input" placeholder="AIzaSy... 또는 AQ..." class="flex-1 bg-black border border-gray-800 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-cyan-500">
+                        <button onclick="saveGeminiKey()" class="bg-cyan-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-cyan-500 transition">SAVE</button>
+                    </div>
+                    <p class="text-[10px] text-gray-600 mt-2 leading-relaxed">다운로드한 로컬 파일에서 분석 기능을 사용하려면 Google AI Studio의 API 키가 필요합니다. 한 번 저장하면 영구히 기억됩니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="w-full">
+        <!-- 탭 1: WORK -->
+        <div id="tab-extract" class="block">
+            <div class="w-full py-32 px-6 flex flex-col items-center justify-center text-center relative overflow-hidden bg-black min-h-[450px]">
+                <div class="relative z-10 max-w-4xl mx-auto px-4">
+                    <h2 id="quote-en" class="text-3xl md:text-5xl text-white mb-8 leading-snug transition-opacity duration-1000 opacity-0" style="font-family: 'Playfair Display', serif; font-style: italic;"></h2>
+                    <p id="quote-ko" class="text-gray-400 font-medium text-sm md:text-base mb-6 transition-opacity duration-1000 opacity-0 tracking-wide"></p>
+                    <p id="quote-author" class="text-cyan-600 font-bold tracking-[0.2em] uppercase text-xs transition-opacity duration-1000 opacity-0"></p>
+                </div>
+            </div>
+
+            <div class="max-w-4xl mx-auto px-6 py-12">
+                <div id="drop-zone" class="bg-[#0a0a0a] border border-gray-800 hover:border-cyan-500 rounded-3xl p-16 text-center transition-all cursor-pointer group shadow-2xl relative overflow-hidden min-h-[350px] flex flex-col items-center justify-center">
+                    <div id="drop-content" class="relative z-10 transition-all duration-300 pointer-events-none group-hover:opacity-10 group-hover:scale-95">
+                        <svg class="w-12 h-12 text-gray-600 group-hover:text-cyan-400 transition-colors mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                        <h2 class="text-xl font-bold text-white mb-2 tracking-wide">광고 영상 PPTX(스토리보드/카피)를 넣어주세요</h2>
+                        <p class="text-gray-500 text-sm">여러 개의 TVCF 수집 PPTX 파일을 동시에 올릴 수 있습니다.</p>
+                    </div>
+
+                    <div id="cat-wrapper" style="left: 50%; top: 50%;">
+                        <div id="cat-scaler" class="relative flex justify-center items-center">
+                            <div id="particles-container" class="absolute inset-0"></div>
+                            <img id="cat-face" src="popcat.gif" alt="Pop Cat" class="w-48 h-48 object-contain drop-shadow-[0_0_30px_rgba(6,182,212,0.8)]" onerror="if(this.getAttribute('src') === 'popcat.gif') { this.setAttribute('src', 'popcat.gif.gif'); } else { this.style.display='none'; this.nextElementSibling.classList.remove('hidden'); this.nextElementSibling.classList.add('block'); }">
+                            <div class="hidden text-[130px] drop-shadow-[0_0_30px_rgba(6,182,212,0.8)] leading-none -mt-4">🙀</div>
+                        </div>
+                    </div>
+                    
+                    <input type="file" id="file-input" accept=".pptx" multiple class="hidden">
+                </div>
+
+                <div id="loading" class="hidden flex flex-col items-center justify-center py-20">
+                    <div class="loader mb-4"></div>
+                    <p class="text-cyan-400 font-bold tracking-widest uppercase text-sm" id="loading-text">Processing...</p>
+                </div>
+
+                <div id="results-container" class="hidden flex flex-col gap-8 mt-12">
+                    <div class="bg-gradient-to-r from-[#111] to-[#1a1a1a] border border-gray-800 rounded-2xl p-8 flex justify-between items-center shadow-xl">
+                        <div>
+                            <h3 class="text-lg font-bold text-white mb-1">광고 비주얼 & 카피 추출 완료</h3>
+                            <p class="text-sm text-gray-400">파일에서 스토리보드 영상 프레임과 카피 추출이 완료되었습니다.</p>
+                        </div>
+                        <button id="analyze-save-btn" class="bg-white text-black px-8 py-3 rounded-full text-sm font-bold tracking-widest uppercase hover:bg-cyan-400 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                            아카이브에 저장하기
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 탭 2: ARCHIVE -->
+        <div id="tab-archive" class="hidden max-w-[1400px] mx-auto px-6 py-12">
+            <div class="flex justify-between items-end mb-12">
+                <h2 class="text-3xl font-black text-white">TVCF Visual & Copy Archive.</h2>
+                <input type="text" id="archive-search" placeholder="브랜드명, 키워드 검색..." class="bg-[#111] border border-gray-700 text-white rounded-full px-5 py-2 text-sm outline-none focus:border-cyan-500 w-64">
+            </div>
+            <div id="archive-grid" class="flex flex-col gap-24 snap-y snap-mandatory"></div>
+        </div>
+
+        <!-- 탭 3: VISUAL -->
+        <div id="tab-visual" class="hidden max-w-7xl mx-auto px-6 py-12">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
+                <div>
+                    <h2 class="text-3xl font-black text-white mb-2">Visual Boards.</h2>
+                    <p class="text-gray-500 text-sm">AI가 분석한 비주얼 특징별로 아카이브를 탐색하고 다운로드하세요.</p>
+                </div>
+                <input type="text" id="visual-search" placeholder="브랜드 검색..." class="bg-[#111] border border-gray-700 text-white rounded-full px-5 py-2 text-sm outline-none focus:border-cyan-500 w-64">
+            </div>
+            <div id="visual-filters" class="flex flex-col gap-3 mb-10 w-full"></div>
+            <!-- 기존의 예뻤던 비주얼 보드 레이아웃으로 복구 -->
+            <div id="visual-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+        </div>
+
+        <!-- 탭 4: COPY -->
+        <div id="tab-copy" class="hidden max-w-7xl mx-auto px-6 py-12">
+            <div class="flex justify-between items-end mb-12">
+                <h2 class="text-3xl font-black text-white">Manifesto Copy.</h2>
+                <input type="text" id="copy-search" placeholder="카피 내용 검색..." class="bg-[#111] border border-gray-700 text-white rounded-full px-5 py-2 text-sm outline-none focus:border-cyan-500 w-64">
+            </div>
+            <div id="copy-grid" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>
+        </div>
+
+        <!-- 탭 5: AI STUDIO -->
+        <div id="tab-aistudio" class="hidden max-w-[1400px] mx-auto px-6 py-12">
+            <h2 class="text-3xl font-black text-white mb-12 text-center tracking-tighter">AI Creative Matcher.</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                
+                <!-- 왼쪽: Find Visuals (무드보드 탐색) -->
+                <div class="bg-[#0a0a0a] border border-gray-800 rounded-3xl p-8 md:p-10 shadow-2xl flex flex-col h-full">
+                    <h3 class="text-2xl font-black text-cyan-400 mb-2">Find Visuals</h3>
+                    <p class="text-gray-400 text-sm mb-6">작성 중인 카피나 기획안을 입력하면 아카이브의 <span class="text-white font-bold">다양한 브랜드 캠페인 비주얼</span>을 스캔하여 분위기가 맞는 영감 무드보드를 만들어줍니다.</p>
+                    <textarea id="draft-copy-input" rows="4" placeholder="작성 중인 카피나 컨셉을 자유롭게 입력하세요..." class="w-full bg-black rounded-xl border border-gray-700 focus:border-cyan-500 text-white p-5 outline-none text-sm mb-6 resize-none"></textarea>
+                    <button id="find-visual-btn" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-4 rounded-xl font-bold uppercase tracking-widest transition-colors mb-6 shadow-lg shadow-cyan-900/20">Generate Visual Moodboard</button>
+                    
+                    <div id="recommend-loading" class="hidden text-center py-10"><div class="loader mx-auto border-cyan-500 border-t-cyan-200"></div><p class="text-cyan-500 text-xs mt-4 font-bold tracking-widest animate-pulse">전체 아카이브를 스캔하여 이미지들을 모으는 중입니다...</p></div>
+                    <!-- 무드보드 형태의 갤러리 -->
+                    <div id="recommend-grid" class="flex-1 overflow-y-auto pr-2 scrollbar-thin hidden">
+                        <p class="text-xs text-gray-500 mb-4 font-bold tracking-widest uppercase">✨ Recommended Visual Moodboard</p>
+                        <div id="moodboard-container" class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                    </div>
+                </div>
+
+                <!-- 오른쪽: Find Copy (카피 변환기) -->
+                <div class="bg-[#0a0a0a] border border-gray-800 rounded-3xl p-8 md:p-10 shadow-2xl flex flex-col h-full">
+                    <h3 class="text-2xl font-black text-purple-400 mb-2">Copy Co-Pilot</h3>
+                    <p class="text-gray-400 text-sm mb-6">전달하고 싶은 핵심 메시지나 비주얼 느낌을 적어주세요. <span class="text-white font-bold">AI가 아카이브의 다양한 브랜드에서 어울리는 카피를 찾아 제안</span>하며, 클릭 시 타겟 브랜드 톤에 맞춰 변환할 수 있습니다.</p>
+                    <textarea id="draft-visual-input" rows="4" placeholder="비주얼 느낌이나 전달하고 싶은 메시지를 적어주세요... (예: 사막을 달리는 거친 자동차, 따뜻한 가족의 사랑)" class="w-full bg-black rounded-xl border border-gray-700 focus:border-purple-500 text-white p-5 outline-none text-sm mb-6 resize-none"></textarea>
+                    <button id="find-copy-btn" class="w-full bg-purple-600 hover:bg-purple-500 text-white py-4 rounded-xl font-bold uppercase tracking-widest transition-colors mb-6 shadow-lg shadow-purple-900/20">Generate Copy Ideas</button>
+                    
+                    <div id="aicopy-recommend-loading" class="hidden text-center py-10"><div class="loader mx-auto border-purple-500 border-t-purple-200"></div><p class="text-purple-500 text-xs mt-4 font-bold tracking-widest animate-pulse">적합한 카피를 검색 중입니다...</p></div>
+                    <div id="aicopy-recommend-grid" class="flex-1 overflow-y-auto pr-2 scrollbar-thin hidden flex-col gap-4"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 알림창 -->
+    <div id="toast-message" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-white text-black px-8 py-3 rounded-full shadow-2xl font-bold tracking-wide transition-all duration-300 opacity-0 pointer-events-none z-[100] translate-y-4"></div>
+
+    <!-- 에디토리얼 레이아웃 기반 프롬프트 모달 -->
+    <div id="prompt-modal" class="fixed inset-0 bg-black/95 z-[200] hidden items-center justify-center p-4 md:p-10 overflow-y-auto">
+        <div class="bg-[#050505] w-full max-w-6xl rounded-3xl relative flex flex-col md:flex-row gap-12 p-8 md:p-14 border border-gray-800 min-h-[70vh] shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+            <button onclick="closePromptModal()" class="absolute top-6 right-6 text-gray-600 hover:text-white transition-colors z-50">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            
+            <div class="md:w-1/3 flex flex-col gap-6">
+                <h2 class="text-4xl md:text-5xl font-black text-white leading-none tracking-tighter mb-2">
+                    Visual<br>Prompt<br>Recipe.
+                </h2>
+                <div class="w-full aspect-video rounded-xl border border-gray-800 shadow-2xl overflow-hidden bg-black flex items-center justify-center relative group">
+                    <img id="prompt-modal-img" src="" class="w-full h-full object-cover">
+                </div>
+                
+                <div class="flex flex-col gap-3 mt-2">
+                    <a id="prompt-modal-download" href="" download="visual.jpg" class="w-full bg-transparent border border-gray-700 hover:border-gray-500 text-gray-300 hover:text-white py-3 px-6 rounded-full font-bold tracking-widest text-center transition-colors flex items-center justify-center gap-2 text-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4-4m0 0l-4-4m4 4V4"></path></svg>
+                        원본 이미지 다운로드
+                    </a>
+                    
+                    <a href="https://www.genspark.ai/ai_image" target="_blank" onclick="copyPromptKo(event)" class="w-full bg-white hover:bg-gray-200 text-black py-4 px-6 rounded-full font-bold tracking-widest text-center transition-colors flex items-center justify-center gap-2 shadow-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        AI 이미지 생성하러 가기
+                    </a>
+                </div>
+                <p class="text-xs text-gray-500 text-center font-medium">버튼 클릭 시 마스터 프롬프트가 즉시 복사됩니다.<br>새 창에서 <strong class="text-gray-300">Ctrl+V (붙여넣기)</strong> 하세요.</p>
+            </div>
+
+            <div class="md:w-2/3 flex flex-col relative">
+                <div id="prompt-loading" class="absolute inset-0 bg-[#050505]/90 z-10 flex flex-col items-center justify-center rounded-xl">
+                    <div class="loader mb-4 border-cyan-500 border-t-cyan-200"></div>
+                    <span class="text-cyan-400 font-bold tracking-widest uppercase text-sm animate-pulse">이미지 요소 분석 중...</span>
+                </div>
+
+                <div class="flex-1 flex flex-col">
+                    <div class="flex flex-col md:flex-row py-6 border-b border-t border-gray-800">
+                        <div class="md:w-1/4 font-bold text-white text-base md:text-lg mb-2 md:mb-0 pr-4">Model &<br>Subject</div>
+                        <textarea id="prompt-subject" class="md:w-3/4 bg-transparent text-gray-300 text-sm md:text-base leading-relaxed outline-none resize-none h-20 placeholder-gray-700" placeholder="피사체, 모델의 외모 및 의상..."></textarea>
+                    </div>
+                    
+                    <div class="flex flex-col md:flex-row py-6 border-b border-gray-800">
+                        <div class="md:w-1/4 font-bold text-white text-base md:text-lg mb-2 md:mb-0 pr-4">Background</div>
+                        <textarea id="prompt-background" class="md:w-3/4 bg-transparent text-gray-300 text-sm md:text-base leading-relaxed outline-none resize-none h-20 placeholder-gray-700" placeholder="배경, 시간대, 장소 등..."></textarea>
+                    </div>
+                    
+                    <div class="flex flex-col md:flex-row py-6 border-b border-gray-800">
+                        <div class="md:w-1/4 font-bold text-white text-base md:text-lg mb-2 md:mb-0 pr-4">Camera &<br>Lighting</div>
+                        <textarea id="prompt-camera" class="md:w-3/4 bg-transparent text-gray-300 text-sm md:text-base leading-relaxed outline-none resize-none h-20 placeholder-gray-700" placeholder="카메라 구도, 렌즈 및 조명 톤..."></textarea>
+                    </div>
+                    
+                    <div class="flex flex-col md:flex-row py-6">
+                        <div class="md:w-1/4 font-bold text-cyan-400 text-base md:text-lg mb-2 md:mb-0 pr-4">
+                            Master Prompt<br>
+                            <span class="text-xs text-gray-500 font-normal tracking-wide">(Korean)</span>
+                        </div>
+                        <textarea id="prompt-full-ko" class="md:w-3/4 bg-transparent text-cyan-100 text-base md:text-lg leading-relaxed outline-none resize-none h-32 font-medium placeholder-gray-700" placeholder="종합 한국어 프롬프트가 생성됩니다..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, doc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        function showMsg(msg) {
+            const toast = document.getElementById('toast-message');
+            toast.innerText = msg;
+            toast.classList.remove('opacity-0', 'translate-y-4');
+            setTimeout(() => toast.classList.add('opacity-0', 'translate-y-4'), 3000);
+        }
+
+        window.toggleSettings = function() {
+            const modal = document.getElementById('settings-modal');
+            modal.classList.toggle('hidden');
+            modal.classList.toggle('flex');
+        }
+
+        window.switchTab = function(tabName) {
+            ['extract', 'archive', 'visual', 'copy', 'aistudio'].forEach(name => {
+                const tab = document.getElementById(`tab-${name}`);
+                if(tab) tab.style.display = name === tabName ? 'block' : 'none';
+                
+                const btn = document.getElementById(`nav-${name}`);
+                if(btn) {
+                    if (name === tabName) btn.classList.replace('text-gray-500', 'text-cyan-400');
+                    else btn.classList.replace('text-cyan-400', 'text-gray-500');
+                }
+                
+                if (name !== tabName && name !== 'aistudio') {
+                    const grid = document.getElementById(`${name}-grid`);
+                    if(grid) grid.innerHTML = ''; 
+                }
+            });
+            if(tabName === 'archive') renderArchiveGrid();
+            if(tabName === 'visual') renderVisualGrid();
+            if(tabName === 'copy') renderCopyGrid();
+        };
+
+        window.toggleCardStrategy = function(btn) {
+            const card = btn.closest('.archive-card');
+            const copySection = card.querySelector('.copy-section');
+            const strategySection = card.querySelector('.strategy-section');
+            
+            if (copySection.classList.contains('hidden')) {
+                copySection.classList.remove('hidden', 'opacity-0');
+                copySection.classList.add('block', 'opacity-100');
+                strategySection.classList.add('hidden', 'opacity-0');
+                strategySection.classList.remove('block', 'opacity-100');
+                btn.innerHTML = `<span class="w-1.5 h-1.5 bg-purple-400 rounded-full animate-pulse"></span> View Campaign Strategy`;
+                btn.classList.replace('border-purple-800/40', 'border-gray-800');
+            } else {
+                copySection.classList.add('hidden', 'opacity-0');
+                copySection.classList.remove('block', 'opacity-100');
+                strategySection.classList.remove('hidden', 'opacity-0');
+                strategySection.classList.add('block', 'opacity-100');
+                btn.innerHTML = `<span class="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse"></span> View Copy`;
+                btn.classList.replace('border-gray-800', 'border-purple-800/40');
+            }
+        };
+
+        const quotesData = [
+            { en: "If it doesn't sell, it isn't creative.", ko: "팔리지 않으면 크리에이티브가 아니다.", author: "David Ogilvy" },
+            { en: "The consumer isn't a moron. She is your wife.", ko: "소비자는 바보가 아니다. 그녀는 당신의 아내다.", author: "David Ogilvy" },
+            { en: "What really decides consumers to buy or not to buy is the content of your advertising, not its form.", ko: "소비자가 구매를 결정하는 진짜 이유는 광고의 형식이 아니라 그 내용이다.", author: "David Ogilvy" },
+            { en: "Nobody reads ads. People read what interests them, and sometimes it's an ad.", ko: "아무도 광고를 읽지 않는다. 사람들은 흥미로운 것을 읽을 뿐이고, 때론 그것이 광고일 뿐이다.", author: "Howard Gossage" },
+            { en: "Creativity is like washing a pig. It's messy. It has no rules. No clear beginning, middle or end.", ko: "크리에이티브는 돼지를 목욕시키는 것과 같다. 지저분하고, 규칙도 없으며, 시작과 끝도 불분명하다.", author: "Luke Sullivan" }
+        ];
+
+        const qEn = document.getElementById('quote-en');
+        const qKo = document.getElementById('quote-ko');
+        const qAuth = document.getElementById('quote-author');
+        let currentQuoteIdx = Math.floor(Math.random() * quotesData.length);
+
+        function showNextQuote() {
+            if(!qEn) return;
+            qEn.classList.remove('opacity-100'); qEn.classList.add('opacity-0');
+            qKo.classList.remove('opacity-100'); qKo.classList.add('opacity-0');
+            qAuth.classList.remove('opacity-100'); qAuth.classList.add('opacity-0');
+
+            setTimeout(() => {
+                const q = quotesData[currentQuoteIdx];
+                qEn.innerText = `"${q.en}"`; qKo.innerText = q.ko; qAuth.innerText = `- ${q.author}`;
+                qEn.classList.remove('opacity-0'); qEn.classList.add('opacity-100');
+                qKo.classList.remove('opacity-0'); qKo.classList.add('opacity-100');
+                qAuth.classList.remove('opacity-0'); qAuth.classList.add('opacity-100');
+                currentQuoteIdx = (currentQuoteIdx + 1) % quotesData.length;
+            }, 1000);
+        }
+        setTimeout(showNextQuote, 100);
+        setInterval(showNextQuote, 6000);
+
+        const apiKey = "";
+
+        window.onload = function() {
+            const savedKey = localStorage.getItem('gemini_api_key') || "";
+            const keyInput = document.getElementById('gemini-key-input');
+            if (keyInput) keyInput.value = savedKey;
+        };
+
+        window.saveGeminiKey = function() {
+            const keyVal = document.getElementById('gemini-key-input').value.trim();
+            localStorage.setItem('gemini_api_key', keyVal);
+            showMsg("API 키가 컴퓨터 브라우저에 안전하게 저장되었습니다!");
+        };
+
+        async function requestGemini(promptText, imagesBase64 = []) {
+            const activeKey = localStorage.getItem('gemini_api_key') || apiKey;
+            
+            if (!activeKey) {
+                showMsg("AI 기능을 위해 SETTINGS에서 Gemini API 키를 확인해주세요!");
+                toggleSettings();
+                throw new Error("Gemini API Key Missing");
+            }
+
+            let models = ["gemini-2.5-flash-preview-09-2025", "gemini-1.5-flash"];
+            let lastError = "API FAILED";
+
+            const parts = [{ text: promptText }];
+            imagesBase64.forEach(b64 => {
+                try {
+                    const mimeType = b64.match(/data:(.*?);base64/)[1];
+                    const data = b64.split(',')[1];
+                    parts.push({ inlineData: { mimeType, data } });
+                } catch(e) {}
+            });
+
+            for (const model of models) {
+                try {
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${activeKey}`;
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: parts }] })
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+                            return data.candidates[0].content.parts[0].text;
+                        }
+                    } else {
+                        const errText = await response.text();
+                        lastError = errText;
+                    }
+                } catch (e) {
+                    lastError = e.message;
+                }
+            }
+            throw new Error(lastError);
+        }
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC2n6v_mPIhSrzFUY8ccQblvSTB64VTIY8",
+            authDomain: "tvcf-941bf.firebaseapp.com",
+            projectId: "tvcf-941bf",
+            storageBucket: "tvcf-941bf.firebasestorage.app",
+            messagingSenderId: "1029920027489",
+            appId: "1:1029920027489:web:c142e6303b9a701b3bcb20"
+        };
+        
+        let app, auth, db;
+        const authStatus = document.getElementById('auth-status');
+        const dbErrorMsg = document.getElementById('db-error-msg');
+        
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        } catch(e) { 
+            authStatus.innerHTML = `<div class="w-2 h-2 bg-red-500 rounded-full"></div>초기화 실패`;
+        }
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        let currentUser = null;
+        let archiveData = [];
+
+        async function initAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    try { await signInWithCustomToken(auth, __initial_auth_token); } 
+                    catch (tokenError) { await signInAnonymously(auth); }
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {}
+        }
+        if(auth) initAuth();
+
+        if(auth) {
+            onAuthStateChanged(auth, user => {
+                currentUser = user;
+                if (user) {
+                    authStatus.innerHTML = `<div class="w-2 h-2 bg-green-400 rounded-full shadow-[0_0_8px_#4ade80]"></div>연결됨`;
+                    loadArchiveData(); 
+                }
+            });
+        }
+
+        function loadArchiveData() {
+            if(!currentUser) return;
+            const collectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'ad_archive');
+            onSnapshot(collectionRef, (snapshot) => {
+                archiveData = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data(); data.id = doc.id;
+                    archiveData.push(data);
+                });
+                archiveData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                if(document.getElementById('tab-archive').style.display === 'block') renderArchiveGrid();
+                if(document.getElementById('tab-visual').style.display === 'block') renderVisualGrid();
+                if(document.getElementById('tab-copy').style.display === 'block') renderCopyGrid();
+            });
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // --- 파일 처리 ---
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const loading = document.getElementById('loading');
+        const resultsContainer = document.getElementById('results-container');
+        const analyzeSaveBtn = document.getElementById('analyze-save-btn');
+        let extractedFilesBatch = [];
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('drag-over'); if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); });
+        fileInput.addEventListener('change', (e) => { if (e.target.files.length) handleFiles(e.target.files); });
+
+        function fileToArrayBuffer(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(reader.error);
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        async function handleFiles(files) {
+            const pptxFiles = Array.from(files).filter(f => f.name.toLowerCase().endsWith('.pptx'));
+            if(!pptxFiles.length) return showMsg('PPTX 파일만 올릴 수 있습니다.');
+            resultsContainer.classList.add('hidden'); loading.classList.remove('hidden');
+            extractedFilesBatch = [];
+            for(let i=0; i<pptxFiles.length; i++) {
+                document.getElementById('loading-text').innerText = `[${i+1}/${pptxFiles.length}] 추출 중...`;
+                try {
+                    const extracted = await parsePPTX(pptxFiles[i]);
+                    if(extracted && (extracted.text.length > 0 || extracted.imagesBase64.length > 0)) extractedFilesBatch.push(extracted);
+                } catch (err) {}
+            }
+            loading.classList.add('hidden');
+            if (extractedFilesBatch.length > 0) {
+                resultsContainer.classList.remove('hidden'); analyzeSaveBtn.disabled = false;
+                analyzeSaveBtn.innerText = `아카이브에 저장하기 (${extractedFilesBatch.length}개)`;
+            } else showMsg("데이터 추출에 실패했습니다.");
+        }
+
+        async function parsePPTX(file) {
+            const zip = new JSZip(); const arrayBuffer = await fileToArrayBuffer(file);
+            const contents = await zip.loadAsync(new Uint8Array(arrayBuffer));
+            const imageFiles = Object.keys(contents.files).filter(name => name.startsWith('ppt/media/') && name.match(/\.(png|jpe?g|gif|webp)$/i)).sort();
+            let imagesBase64 = [];
+            for (let i = 0; i < Math.min(imageFiles.length, 12); i++) {
+                try {
+                    const blob = await contents.files[imageFiles[i]].async('blob');
+                    const b64 = await compressImage(blob, 600);
+                    if (b64) imagesBase64.push(b64);
+                } catch (e) {}
+            }
+            const slideFiles = Object.keys(contents.files).filter(name => name.startsWith('ppt/slides/') && name.endsWith('.xml')).sort();
+            let text = ""; const parser = new DOMParser();
+            for (let fname of slideFiles) {
+                try {
+                    const xml = await contents.files[fname].async('string');
+                    const xmlDoc = parser.parseFromString(xml, "text/xml");
+                    let tags = xmlDoc.getElementsByTagNameNS("*", "t");
+                    if (!tags.length) tags = xmlDoc.getElementsByTagName("a:t");
+                    if (!tags.length) tags = xmlDoc.getElementsByTagName("t");
+                    for (let i = 0; i < tags.length; i++) if (tags[i].textContent) text += tags[i].textContent + " ";
+                } catch (e) {}
+            }
+            return { filename: file.name, text: text.trim(), imagesBase64 };
+        }
+
+        function compressImage(blob, maxWidth = 800) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const scale = maxWidth / img.width;
+                        canvas.width = maxWidth; canvas.height = img.height * scale;
+                        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.6));
+                    };
+                    img.onerror = () => resolve(null); img.src = e.target.result;
+                };
+                reader.onerror = () => resolve(null); reader.readAsDataURL(blob);
+            });
+        }
+
+        function cleanCopyText(rawText) {
+            if (!rawText) return "";
+            const lines = rawText.split('\n').map(line => line.trim().replace(/^[\s\uFEFF\u00A0\u3000]+|[\s\uFEFF\u00A0\u3000]+$/g, ''));
+            const cleaned = []; let emptyCount = 0;
+            for (let line of lines) {
+                if (line === "") { emptyCount++; if (emptyCount <= 1) cleaned.push(""); } 
+                else { emptyCount = 0; cleaned.push(line); }
+            }
+            return cleaned.join('\n');
+        }
+
+        analyzeSaveBtn.addEventListener('click', async () => {
+            if(!currentUser) { toggleSettings(); return showMsg("DB 연결 필요"); }
+            analyzeSaveBtn.disabled = true; let successCount = 0;
+            for(let i=0; i<extractedFilesBatch.length; i++) {
+                const fileObj = extractedFilesBatch[i];
+                analyzeSaveBtn.innerText = `AI 분석 중 [${i+1}/${extractedFilesBatch.length}]...`;
+                let analysisObj = { brand: fileObj.filename.replace(".pptx", ""), category: "ETC", summary: "", keywords: [], visual_tags: [], manifesto_copy: fileObj.text, market_analysis: "", target_audience: "", creative_strategy: "" };
+                try {
+                    const prompt = `다음은 수집된 TVCF 광고 영상의 PPTX 파일 내 원본 텍스트와 일부 스토리보드 이미지입니다.
+                    이 중에서 실제 광고 카피(COPYWRITE, 자막, 내레이션, 화면 글귀 등)에 해당하는 실제 문장들을 절대로 가공하거나 임의로 창작(새로 지어내기)하지 마세요. 
+                    대신, 읽는 이가 시각적 카타르시스를 느낄 수 있도록 매니페스토 화보집처럼 '문단'을 정교하게 나누어 주세요. 
+                    대화의 주체가 바뀌거나, 장면 및 의미가 전환되거나, 내레이션의 호흡이 길게 끊어지는 지점마다 반드시 '빈 줄(\n\n)'을 삽입하여 문단을 그룹화해야 합니다.
+                    줄 맨 앞뒤에 들어간 구차한 공백이나 탭 문자는 절대 다 지우고 완벽하게 왼쪽 선에 밀착되게 정렬해 주세요.
+                    또한, 해당 브랜드를 바탕으로 당시의 광고업계 트렌드 분석(market_analysis), 주 타겟 고객층(target_audience), 영상 크리에이티브 도출 배경전략(creative_strategy)을 추론해 주세요.
+                    마지막으로, 첨부된 이미지를 분석하여 영상의 비주얼 특징을 나타내는 카테고리 태그를 정확히 5개 추출해주세요. (반드시 "톤:O", "배경:O", "인물:O", "카피:O", "카메라:O" 의 접두사 형식으로만 작성)
+                    반드시 아래의 순수 JSON 구조로만 답변해야 합니다:
+                    {
+                      "brand": "브랜드명", "category": "카테고리", "summary": "1줄 요약", "keywords": ["키워드1","키워드2"],
+                      "visual_tags": ["톤:다크시네마", "배경:도심야경", "인물:20대여성", "카피:볼드고딕", "카메라:로우앵글"],
+                      "manifesto_copy": "정제된 카피 원문...", "market_analysis": "...", "target_audience": "...", "creative_strategy": "..."
+                    }
+                    [원본 텍스트]: ${fileObj.text.substring(0, 3000)}`;
+                    
+                    const resTextRaw = await requestGemini(prompt, fileObj.imagesBase64.slice(0, 3));
+                    try {
+                        const parsed = JSON.parse(resTextRaw.replace(/```json/g, "").replace(/```/g, "").trim());
+                        analysisObj = { ...analysisObj, ...parsed };
+                    } catch (jsonErr) {}
+
+                    const finalizedCopy = cleanCopyText(analysisObj.manifesto_copy || fileObj.text);
+
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'ad_archive'), {
+                        brand: analysisObj.brand || "미상", category: analysisObj.category || "ETC", summary: analysisObj.summary || "",
+                        keywords: analysisObj.keywords || [], visual_tags: analysisObj.visual_tags || [], manifesto_copy: finalizedCopy,
+                        market_analysis: analysisObj.market_analysis || "", target_audience: analysisObj.target_audience || "",
+                        creative_strategy: analysisObj.creative_strategy || "", images: fileObj.imagesBase64, timestamp: new Date().toISOString()
+                    });
+                    successCount++;
+                } catch (e) {}
+            }
+            analyzeSaveBtn.disabled = false; analyzeSaveBtn.innerText = "아카이브에 저장하기";
+            if (successCount > 0) { resultsContainer.classList.add('hidden'); showMsg(`성공적으로 ${successCount}개 저장!`); switchTab('archive'); }
+        });
+
+        function renderArchiveGrid() {
+            const term = document.getElementById('archive-search').value.toLowerCase();
+            const grid = document.getElementById('archive-grid'); 
+            const filtered = archiveData.filter(ad => (ad.brand||'').toLowerCase().includes(term) || (ad.manifesto_copy||'').toLowerCase().includes(term));
+            
+            let gridHTML = '';
+            
+            // 용량 제한 해제: 잘라내는 부분(slice)을 없애고 모든 데이터를 출력합니다.
+            filtered.forEach(ad => {
+                const imgsHtml = (ad.images || []).map(img => `
+                    <div class="relative group aspect-video overflow-hidden rounded-xl border border-gray-800/80 hover:border-cyan-500/50 hover:scale-[1.02] transition duration-300 shadow-md">
+                        <img src="${img}" loading="lazy" class="w-full h-full object-cover opacity-95 group-hover:opacity-100 transition duration-300">
+                    </div>
+                `).join('');
+
+                gridHTML += `
+                    <div class="archive-card render-optimize group bg-[#090909] border border-gray-800 rounded-[2.5rem] overflow-hidden flex flex-col md:flex-row hover:border-cyan-500/50 transition duration-500 shadow-2xl h-auto md:h-[480px] max-h-[480px] mb-12 relative">
+                        <div class="md:w-6/12 bg-[#030303] p-6 flex flex-col justify-center h-full overflow-hidden">
+                            <div class="grid grid-cols-2 gap-3.5 h-full overflow-y-auto pr-1.5 scrollbar-thin">
+                                ${imgsHtml || '<div class="text-gray-800 text-sm col-span-full text-center py-20">NO VISUALS</div>'}
+                            </div>
+                        </div>
+                        <div class="md:w-6/12 p-8 md:p-10 flex flex-col justify-between relative bg-gradient-to-br from-[#111] to-black z-10 h-full overflow-hidden">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-cyan-400 font-bold text-xs tracking-[0.2em] uppercase">TVCF VISUAL & COPY</span>
+                            </div>
+                            <div class="relative flex-1 overflow-hidden h-[280px]">
+                                <div class="copy-section transition-all duration-300 opacity-100 block text-left">
+                                    <h3 class="text-3xl font-black text-white mb-1 tracking-tighter leading-none text-left">${ad.brand}</h3>
+                                    <h4 class="text-gray-400 font-semibold text-xs mb-4 tracking-wide text-left">${ad.summary}</h4>
+                                    <div class="text-left border-l-2 border-cyan-500/30 pl-4 text-gray-200 text-sm md:text-base leading-loose font-sans whitespace-pre-wrap max-h-[190px] overflow-y-auto pr-2 tracking-wide font-light scrollbar-thin">${cleanCopyText(ad.manifesto_copy)}</div>
+                                </div>
+                                <div class="strategy-section transition-all duration-300 opacity-0 hidden text-left h-full">
+                                    <h3 class="text-xl font-black text-white mb-4 tracking-tighter leading-none text-left">${ad.brand}</h3>
+                                    <div class="space-y-4 overflow-y-auto max-h-[220px] pr-2 scrollbar-thin text-left">
+                                        <div class="space-y-1 text-left border-l-2 border-purple-500/30 pl-3">
+                                            <h5 class="text-[10px] font-black text-purple-400">📊 MARKET TREND</h5><p class="text-gray-300 text-sm">${ad.market_analysis}</p>
+                                        </div>
+                                        <div class="space-y-1 text-left border-l-2 border-cyan-500/30 pl-3">
+                                            <h5 class="text-[10px] font-black text-cyan-400">🎯 TARGET</h5><p class="text-gray-300 text-sm">${ad.target_audience}</p>
+                                        </div>
+                                        <div class="space-y-1 text-left border-l-2 border-yellow-500/30 pl-3">
+                                            <h5 class="text-[10px] font-black text-yellow-400">💡 CREATIVE INTENT</h5><p class="text-gray-300 text-sm">${ad.creative_strategy}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between pt-4 border-t border-gray-800 mt-auto">
+                                <div class="flex flex-wrap gap-1.5">${(ad.keywords||[]).map(k=>`<span class="text-[9px] border border-gray-800 text-gray-500 px-2 py-0.5 rounded-full">#${k}</span>`).join('')}</div>
+                                <button onclick="toggleCardStrategy(this)" class="strategy-toggle-btn text-[9px] text-gray-400 hover:text-cyan-400 flex items-center gap-1.5 bg-gray-900/60 px-3 py-1.5 rounded-full border border-gray-800 transition font-black tracking-widest uppercase">
+                                    <span class="w-1.5 h-1.5 bg-purple-400 rounded-full animate-pulse"></span> View Campaign Strategy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            grid.innerHTML = gridHTML; 
+        }
+        document.getElementById('archive-search').addEventListener('input', debounce(renderArchiveGrid, 300));
+
+        let currentVisualFilter = 'ALL';
+        window.setVisualFilter = function(tag) { currentVisualFilter = tag; renderVisualGrid(); };
+
+        function renderVisualGrid() {
+            const term = document.getElementById('visual-search').value.toLowerCase();
+            const grid = document.getElementById('visual-grid'); 
+            const filterContainer = document.getElementById('visual-filters');
+            
+            let tagsByCategory = { '톤': new Set(), '배경': new Set(), '인물': new Set(), '카피': new Set(), '카메라': new Set(), '기타': new Set() };
+            
+            archiveData.forEach(ad => {
+                (ad.visual_tags || []).forEach(t => {
+                    if (t.startsWith('톤:')) tagsByCategory['톤'].add(t);
+                    else if (t.startsWith('배경:')) tagsByCategory['배경'].add(t);
+                    else if (t.startsWith('인물:')) tagsByCategory['인물'].add(t);
+                    else if (t.startsWith('카피:')) tagsByCategory['카피'].add(t);
+                    else if (t.startsWith('카메라:')) tagsByCategory['카메라'].add(t);
+                    else tagsByCategory['기타'].add(t);
+                });
+            });
+            
+            if(filterContainer) {
+                let tagsHTML = `<div class="flex flex-col gap-3 w-full">`;
+                tagsHTML += `<div class="flex mb-3"><button onclick="setVisualFilter('ALL')" class="${currentVisualFilter === 'ALL' ? 'bg-cyan-500 text-white border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.5)]' : 'bg-[#111] text-gray-400 hover:text-white border-gray-800'} px-8 py-3 rounded-full text-xs font-black transition border tracking-widest uppercase flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg> ALL (전체보기)</button></div>`;
+
+                const catLabels = { '톤': '🎨 VIBE (분위기/톤)', '배경': '🌃 SPACE (배경)', '인물': '👤 MODEL (인물)', '카피': '🔠 TYPO (카피)', '카메라': '🎥 CAMERA (카메라 구도)', '기타': '🏷️ ETC (기타)' };
+
+                for (const [cat, tagSet] of Object.entries(tagsByCategory)) {
+                    if (tagSet.size === 0) continue;
+                    const isOpen = tagSet.has(currentVisualFilter) ? 'open' : '';
+                    tagsHTML += `<details ${isOpen} class="bg-[#0a0a0a] rounded-2xl border border-gray-800 overflow-hidden group transition-all">`;
+                    tagsHTML += `<summary class="cursor-pointer p-4 md:p-5 flex justify-between items-center list-none [&::-webkit-details-marker]:hidden hover:bg-gray-900/50 transition-colors select-none">`;
+                    tagsHTML += `<div class="flex items-center gap-3"><span class="text-xs md:text-sm font-black text-cyan-500 tracking-widest uppercase">${catLabels[cat]}</span><span class="bg-[#111] border border-gray-700 text-gray-400 text-[10px] px-2.5 py-0.5 rounded-full font-bold">${tagSet.size}</span></div>`;
+                    tagsHTML += `<svg class="w-5 h-5 text-gray-600 transition-transform duration-300 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></summary>`;
+                    tagsHTML += `<div class="p-4 md:p-5 pt-3 border-t border-gray-800/80 flex flex-wrap gap-2 bg-[#050505]">`;
+                    Array.from(tagSet).sort().forEach(tag => {
+                        const isActive = currentVisualFilter === tag;
+                        const displayTag = tag.replace(/^(톤|배경|인물|카피|카메라):/, '');
+                        tagsHTML += `<button onclick="setVisualFilter('${tag}')" class="${isActive ? 'bg-pink-600 text-white border-pink-500 shadow-[0_0_10px_rgba(236,72,153,0.4)]' : 'bg-black text-gray-400 hover:text-white border-gray-700'} px-4 py-2 rounded-full text-[11px] font-bold transition border">#${displayTag}</button>`;
+                    });
+                    tagsHTML += `</div></details>`;
+                }
+                tagsHTML += `</div>`;
+                filterContainer.innerHTML = tagsHTML;
+            }
+
+            const filtered = archiveData.filter(ad => {
+                const matchSearch = (ad.brand||'').toLowerCase().includes(term);
+                const matchTag = currentVisualFilter === 'ALL' ? true : (ad.visual_tags || []).includes(currentVisualFilter);
+                return matchSearch && matchTag;
+            });
+            
+            let gridHTML = ''; 
+            
+            // 용량 제한 해제 & 기존 레이아웃 복구
+            filtered.forEach(ad => {
+                (ad.images || []).forEach((img, idx) => {
+                    gridHTML += `
+                        <div class="render-optimize aspect-video relative group rounded-lg overflow-hidden border border-gray-800 bg-black cursor-pointer shadow-lg hover:border-pink-500 transition duration-300" onclick="generateImagePrompt('${ad.id}', ${idx})">
+                            <img src="${img}" loading="lazy" class="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-300 flex flex-col justify-end p-4">
+                                <div class="flex justify-between items-end w-full">
+                                    <div>
+                                        <p class="text-white text-xs font-bold uppercase tracking-widest">${ad.brand}</p>
+                                        <p class="text-cyan-400 text-[10px] mt-1.5 flex gap-1 font-bold flex-wrap">
+                                            ${(ad.visual_tags||[]).map(t => `<span>#${t.replace(/^(톤|배경|인물|카피|카메라):/, '')}</span>`).join('')}
+                                        </p>
+                                    </div>
+                                    <div class="flex flex-col gap-2">
+                                        <span class="bg-pink-600/90 hover:bg-pink-500 text-white text-[10px] px-3 py-1 rounded-full font-black tracking-wider transition shadow-lg text-center flex items-center justify-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> GENERATE</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+            
+            grid.innerHTML = gridHTML; 
+        }
+        document.getElementById('visual-search').addEventListener('input', debounce(renderVisualGrid, 300));
+
+        window.generateImagePrompt = async function(adId, imgIdx) {
+            const ad = archiveData.find(a => a.id === adId);
+            if (!ad || !ad.images || !ad.images[imgIdx]) return;
+            const base64Img = ad.images[imgIdx]; const brand = ad.brand;
+            const modal = document.getElementById('prompt-modal'); const loader = document.getElementById('prompt-loading');
+            
+            modal.classList.remove('hidden'); modal.classList.add('flex'); loader.classList.remove('hidden');
+            document.getElementById('prompt-subject').value = ''; document.getElementById('prompt-background').value = '';
+            document.getElementById('prompt-camera').value = ''; document.getElementById('prompt-full-ko').value = '';
+            document.getElementById('prompt-modal-img').src = base64Img;
+            
+            const downloadBtn = document.getElementById('prompt-modal-download');
+            if (downloadBtn) { downloadBtn.href = base64Img; downloadBtn.download = `${brand}_visual_frame.jpg`; }
+
+            try {
+                const promptReq = `Analyze this storyboard frame carefully. Break down the visual elements into specific prompt generation categories in KOREAN. You MUST return the result in JSON format ONLY: { "subject": "인물, 피사체, 외모, 의상, 표정, 포즈 등 (한국어)", "background": "배경, 장소, 시간대, 날씨, 주변 소품 등 (한국어)", "camera": "카메라 앵글, 렌즈 종류, 조명(Lighting) 스타일, 색감 등 (한국어)", "full_ko": "위 모든 요소를 종합하여 GenSpark 등 AI 이미지 생성기에 그대로 복사해서 붙여넣을 수 있는 '자연스러운 한 문단의 완성된 한국어 프롬프트' (한국어)" }`;
+                const aiPromptRaw = await requestGemini(promptReq, [base64Img]);
+                let parsed = {};
+                try { parsed = JSON.parse(aiPromptRaw.replace(/```json/g, "").replace(/```/g, "").trim()); } 
+                catch(e) { parsed = { full_ko: "JSON 파싱에 실패했습니다." }; }
+                document.getElementById('prompt-subject').value = parsed.subject || '분석 결과 없음';
+                document.getElementById('prompt-background').value = parsed.background || '분석 결과 없음';
+                document.getElementById('prompt-camera').value = parsed.camera || '분석 결과 없음';
+                document.getElementById('prompt-full-ko').value = parsed.full_ko || '';
+            } catch(e) {
+                document.getElementById('prompt-full-ko').value = "프롬프트 생성 실패: 통신 오류입니다. 다시 시도해 주세요.";
+            } finally { loader.classList.add('hidden'); }
+        };
+
+        window.closePromptModal = function() {
+            document.getElementById('prompt-modal').classList.add('hidden'); document.getElementById('prompt-modal').classList.remove('flex');
+        };
+
+        function fallbackCopyTextToClipboard(text) {
+            var textArea = document.createElement("textarea");
+            textArea.value = text; textArea.style.top = "0"; textArea.style.left = "0"; textArea.style.position = "fixed";
+            document.body.appendChild(textArea); textArea.focus(); textArea.select();
+            try { document.execCommand('copy'); } catch (err) {}
+            document.body.removeChild(textArea);
+        }
+
+        window.copyPromptKo = function(e) {
+            const fullPrompt = document.getElementById('prompt-full-ko').value;
+            if (!fullPrompt || fullPrompt.includes("생성 실패")) { e.preventDefault(); return showMsg("프롬프트가 아직 생성되지 않았습니다."); }
+            fallbackCopyTextToClipboard(fullPrompt);
+            showMsg("✨ 한국어 프롬프트 복사 완료! 창이 열리면 붙여넣기(Ctrl+V) 하세요.");
+        };
+
+        function renderCopyGrid() {
+            const term = document.getElementById('copy-search').value.toLowerCase();
+            const grid = document.getElementById('copy-grid'); 
+            const filtered = archiveData.filter(ad => (ad.brand||'').toLowerCase().includes(term) || (ad.manifesto_copy||'').toLowerCase().includes(term));
+            
+            let gridHTML = '';
+            
+            // 용량 제한 해제
+            filtered.forEach(ad => {
+                gridHTML += `
+                    <div class="render-optimize bg-[#090909] p-8 md:p-12 rounded-2xl border border-gray-800 hover:border-cyan-500/50 transition duration-300 shadow-xl text-left">
+                        <h3 class="text-cyan-400 font-black text-lg md:text-xl mb-6 tracking-wide text-left">${ad.brand}</h3>
+                        <div class="text-left text-gray-300 font-sans text-sm md:text-base leading-loose whitespace-pre-wrap tracking-wide font-normal">${cleanCopyText(ad.manifesto_copy)}</div>
+                    </div>
+                `;
+            });
+            
+            grid.innerHTML = gridHTML;
+        }
+        document.getElementById('copy-search').addEventListener('input', debounce(renderCopyGrid, 300));
+
+        // --- AI Studio 매칭 로직 (대폭 업그레이드) ---
+        document.getElementById('find-visual-btn').addEventListener('click', async () => {
+            const draft = document.getElementById('draft-copy-input').value.trim();
+            if(!draft) return showMsg("카피 초안을 입력해주세요.");
+            document.getElementById('recommend-loading').classList.remove('hidden');
+            const gridWrapper = document.getElementById('recommend-grid');
+            const grid = document.getElementById('moodboard-container');
+            gridWrapper.classList.add('hidden'); grid.innerHTML = '';
+            
+            try {
+                // 여러 개의 캠페인을 추천받기 위해 프롬프트 구조 완전 개선
+                const prompt = `사용자가 작성 중인 기획안: "${draft}"\n[아카이브 데이터]:\n${JSON.stringify(archiveData.map(a=>({id: a.id, brand: a.brand, summary: a.summary})))}\n위 아카이브 데이터에서 브랜드명과 상관없이, 기획안의 메시지나 분위기를 시각적으로 가장 잘 표현할 수 있는 캠페인 ID를 최소 4개에서 최대 8개까지 다양하게 골라주세요. 반드시 아래의 JSON 배열 형식으로만 응답하세요:\n["id1", "id2", "id3", ...]`;
+                const resTextRaw = await requestGemini(prompt);
+                let recommendedIds = JSON.parse(resTextRaw.replace(/```json/g, "").replace(/```/g, "").trim());
+                
+                let moodboardHtml = '';
+                recommendedIds.forEach(id => {
+                    const ad = archiveData.find(a=>a.id === id);
+                    if(ad && ad.images && ad.images.length > 0) {
+                        // 추천된 각 캠페인에서 이미지를 1~2장씩 뽑아서 무드보드 구성
+                        ad.images.slice(0, 2).forEach((imgUrl, imgIdx) => {
+                            moodboardHtml += `
+                                <div class="relative w-full aspect-video rounded-lg overflow-hidden border border-gray-800 shadow-md group cursor-pointer" onclick="generateImagePrompt('${ad.id}', ${imgIdx})">
+                                    <img src="${imgUrl}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity">
+                                    <div class="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end">
+                                        <p class="text-[10px] text-gray-300 truncate tracking-widest uppercase">${ad.brand}</p>
+                                        <p class="text-xs text-white font-bold truncate">${ad.summary || ad.brand + ' 캠페인'}</p>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                });
+                grid.innerHTML = moodboardHtml || '<p class="text-gray-500 text-xs">매칭되는 이미지가 없습니다.</p>';
+                gridWrapper.classList.remove('hidden');
+            } catch(e) {
+                showMsg("비주얼 추천 중 오류가 발생했습니다.");
+            }
+            document.getElementById('recommend-loading').classList.add('hidden');
+        });
+
+        // 2. Find Copy: 아카이브에서 다양한 브랜드의 실제 카피를 검색 -> 클릭 시 타겟 브랜드 톤으로 즉각 변환
+        // 2. Find Copy: 아카이브에서 다수 브랜드의 카피 추천 -> 클릭 시 타겟 브랜드 톤으로 즉각 변환
+        document.getElementById('find-copy-btn').addEventListener('click', async () => {
+            const draft = document.getElementById('draft-visual-input').value.trim();
+            if(!draft) return showMsg("비주얼 느낌이나 컨셉을 입력해주세요.");
+            document.getElementById('aicopy-recommend-loading').classList.remove('hidden');
+            const grid = document.getElementById('aicopy-recommend-grid');
+            grid.classList.add('hidden'); grid.innerHTML = '';
+            
+            try {
+                // 아카이브에서 '서로 다른 브랜드'의 카피를 찾아오도록 프롬프트 전면 수정
+                const prompt = `사용자가 원하는 카피 느낌/컨셉: "${draft}"\n[아카이브 데이터]: \n${JSON.stringify(archiveData.map(a=>({id:a.id, brand:a.brand, copy:a.manifesto_copy})))}\n위 아카이브에서 사용자가 원하는 느낌과 가장 잘 어울리는 '1줄짜리 핵심 카피(Headline)'를 찾아주세요. **반드시 서로 다른 브랜드의 캠페인에서 4~5개를 골라야 합니다.** (같은 브랜드 중복 추천 절대 금지)\n반드시 아래 JSON 배열 형식으로만 응답:\n[{"id": "원본캠페인id", "brand": "원본브랜드명", "line": "추출한 1줄 카피", "reason": "추천 이유"}]`;
+                const resTextRaw = await requestGemini(prompt);
+                let list = JSON.parse(resTextRaw.replace(/```json/g, "").replace(/```/g, "").trim());
+                if (!Array.isArray(list)) list = [list];
+                
+                let copyHtml = '<p class="text-xs text-gray-500 mb-2 font-bold tracking-widest uppercase">✨ Select to adapt for your brand</p>';
+                list.forEach((rec, index) => {
+                    const line = rec.line;
+                    // 카피 클릭 시 펼쳐지는 아코디언 브랜드 변환기 UI
+                    copyHtml += `
+                        <div class="bg-black p-5 rounded-xl border border-gray-800 hover:border-purple-500/50 transition-colors shadow-lg">
+                            <div class="cursor-pointer flex flex-col group" onclick="document.getElementById('adapt-box-${index}').classList.toggle('hidden')">
+                                <div class="flex justify-between items-start mb-2">
+                                    <span class="bg-purple-900/40 text-purple-400 border border-purple-800/50 px-2 py-0.5 rounded-md text-[9px] font-bold tracking-widest uppercase">${rec.brand}</span>
+                                    <svg class="w-5 h-5 text-gray-600 group-hover:text-purple-400 ml-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                                <p class="text-gray-200 font-medium leading-relaxed group-hover:text-white transition-colors">"${line}"</p>
+                                <p class="text-gray-500 text-[10px] mt-2 line-clamp-1">${rec.reason}</p>
+                            </div>
+                            
+                            <div id="adapt-box-${index}" class="hidden mt-5 pt-5 border-t border-gray-800/80">
+                                <p class="text-[10px] text-purple-400 font-bold mb-2 tracking-widest uppercase">타겟 브랜드 톤앤매너로 변환하기</p>
+                                <div class="flex gap-2">
+                                    <input type="text" id="adapt-brand-${index}" placeholder="예: 나이키, 애플, 샤넬..." class="flex-1 bg-[#111] border border-gray-700 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-purple-500">
+                                    <button onclick="adaptBrandCopy('${line.replace(/'/g, "\\'")}', ${index})" class="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-colors shadow-lg">변환</button>
+                                </div>
+                                <div id="adapt-result-${index}" class="mt-4 hidden p-4 bg-purple-900/10 border border-purple-800/30 rounded-lg"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+                grid.innerHTML = copyHtml;
+                grid.classList.remove('hidden');
+            } catch(e) {
+                showMsg("카피 추천 중 오류가 발생했습니다.");
+            }
+            document.getElementById('aicopy-recommend-loading').classList.add('hidden');
+        });
+
+        // 타겟 브랜드에 맞춰 카피를 재작성하는 AI 호출 함수
+        window.adaptBrandCopy = async function(originalLine, index) {
+            const brand = document.getElementById(`adapt-brand-${index}`).value.trim();
+            if(!brand) return showMsg("브랜드명을 입력해주세요.");
+            
+            const resultBox = document.getElementById(`adapt-result-${index}`);
+            resultBox.classList.remove('hidden');
+            resultBox.innerHTML = '<div class="flex items-center gap-2"><div class="loader w-3 h-3 border border-purple-500 border-t-transparent mx-0"></div><span class="text-[10px] text-purple-400">브랜드 철학을 분석하며 변환 중...</span></div>';
+            
+            try {
+                const prompt = `원본 카피: "${originalLine}"\n적용할 타겟 브랜드: "${brand}"\n이 원본 카피가 가진 핵심 의미와 구조를 유지하면서, 타겟 브랜드의 톤앤매너(철학, 슬로건 말투, 핵심 가치)에 완벽하게 어울리도록 단 1줄의 카피로 다시 작성해줘. 부가 설명 없이 오직 결과 카피 문자열 1줄만 텍스트로 출력해.`;
+                const res = await requestGemini(prompt);
+                
+                // 따옴표 관련 에러를 막기 위해 변환된 문자열에서 작은/큰 따옴표를 모두 제거하거나 안전하게 이스케이프 처리합니다.
+                const safeResForDisplay = res.replace(/"/g, '');
+                const safeResForCopy = res.replace(/'/g, "\\'").replace(/"/g, '');
+                
+                resultBox.innerHTML = `
+                    <p class="font-black text-white text-lg tracking-wide leading-relaxed">"${safeResForDisplay}"</p>
+                    <button onclick="navigator.clipboard.writeText('${safeResForCopy}'); showMsg('브랜드 카피가 복사되었습니다!');" class="mt-3 text-[10px] text-purple-400 hover:text-white flex items-center gap-1 font-bold tracking-widest"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> 복사하기</button>
+                `;
+            } catch(e) {
+                resultBox.innerHTML = '<p class="text-xs text-red-400">변환에 실패했습니다. API 설정을 확인해주세요.</p>';
+            }
+        };
+
+    </script>
+</body>
+</html>
