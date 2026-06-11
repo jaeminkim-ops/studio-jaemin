@@ -7,20 +7,22 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     
-    <!-- 강렬한 타이틀 폰트 Montserrat Black -->
+    <!-- 폰트: 굵은 Montserrat와 클래식한 Playfair(필기체) 로드 -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         
         body { 
             font-family: 'Pretendard', sans-serif; 
-            background-color: #050505; /* 기본 다크 배경 */
+            background-color: #050505; 
             color: #f8f9fa; 
             overflow-x: hidden;
             transition: background-color 0.5s ease;
         }
         
         .font-montserrat { font-family: 'Montserrat', sans-serif; letter-spacing: -0.02em; }
+        /* 명언용 필기체 클래스 추가 */
+        .font-playfair { font-family: 'Playfair Display', serif; font-style: italic; letter-spacing: 0; }
 
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -38,7 +40,7 @@
         
         .render-optimize { content-visibility: auto; contain-intrinsic-size: 1px 400px; }
 
-        /* 📚 롤링 가능한 스택형 갤러리 애니메이션 (AI Chat 화이트 테마 전용) */
+        /* 📚 롤링 가능한 스택형 갤러리 애니메이션 */
         .stack-container {
             width: 100%; max-width: 800px; margin: 0 auto;
             padding-bottom: 50vh; 
@@ -63,7 +65,7 @@
             transform: translateY(-20px) scale(1.02);
         }
         
-        /* 모달 등장 애니메이션 */
+        /* 모달 & 리스트 등장 애니메이션 */
         .fade-in-up { animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes fadeInUp {
             0% { opacity: 0; transform: translateY(30px); }
@@ -73,7 +75,6 @@
 </head>
 <body class="antialiased selection:bg-cyan-500 selection:text-white pb-20">
 
-    <!-- 헤더 (기본 다크 테마) -->
     <header class="bg-[#050505]/90 backdrop-blur-md text-white w-full sticky top-0 z-50 border-b border-gray-900 transition-colors duration-500" id="main-header">
         <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
             <h1 id="logo-text" class="text-xl font-montserrat tracking-tight cursor-pointer hover:text-cyan-400 transition-colors text-white" onclick="switchTab('extract')">
@@ -96,7 +97,7 @@
         </div>
     </header>
 
-    <!-- 설정 모달 (다크 테마) -->
+    <!-- 설정 모달 -->
     <div id="settings-modal" class="fixed inset-0 bg-black/80 z-[200] hidden items-center justify-center backdrop-blur-sm">
         <div class="bg-[#111] border border-gray-800 rounded-3xl p-8 max-w-md w-full shadow-2xl relative fade-in-up">
             <button onclick="toggleSettings()" class="absolute top-4 right-4 text-gray-500 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
@@ -121,11 +122,12 @@
     </div>
 
     <main class="w-full">
-        <!-- 탭 1: WORK (다크닝, 애니메이션 제거된 깔끔한 드롭존) -->
+        <!-- 탭 1: WORK -->
         <div id="tab-extract" class="block">
             <div class="w-full py-32 px-6 flex flex-col items-center justify-center text-center relative overflow-hidden bg-[#050505] min-h-[450px]">
                 <div class="relative z-10 max-w-4xl mx-auto px-4">
-                    <h2 id="quote-en" class="text-4xl md:text-6xl text-white mb-8 leading-snug transition-opacity duration-1000 opacity-0 font-montserrat tracking-tighter"></h2>
+                    <!-- 예전처럼 우아한 필기체(Playfair Display) 폰트로 복구된 인용구 -->
+                    <h2 id="quote-en" class="text-4xl md:text-6xl text-white mb-8 leading-snug transition-opacity duration-1000 opacity-0 font-playfair"></h2>
                     <p id="quote-ko" class="text-gray-400 font-medium text-sm md:text-base mb-6 transition-opacity duration-1000 opacity-0 tracking-wide"></p>
                     <p id="quote-author" class="text-cyan-500 font-bold tracking-[0.2em] uppercase text-xs transition-opacity duration-1000 opacity-0"></p>
                 </div>
@@ -160,7 +162,7 @@
             </div>
         </div>
 
-        <!-- 탭 2: ARCHIVE (다크 테마) -->
+        <!-- 탭 2: ARCHIVE -->
         <div id="tab-archive" class="hidden max-w-[1400px] mx-auto px-6 py-12">
             <div class="flex justify-between items-end mb-12 border-b border-gray-900 pb-6">
                 <h2 class="text-4xl md:text-6xl font-montserrat text-white tracking-tighter uppercase">Recent Archive.</h2>
@@ -169,7 +171,7 @@
             <div id="archive-grid" class="flex flex-col gap-24 snap-y snap-mandatory"></div>
         </div>
 
-        <!-- 탭 3: VISUAL (다크 테마) -->
+        <!-- 탭 3: VISUAL -->
         <div id="tab-visual" class="hidden max-w-[1400px] mx-auto px-6 py-12">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4 border-b border-gray-900 pb-6">
                 <div>
@@ -182,7 +184,7 @@
             <div id="visual-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-x-6 gap-y-10"></div>
         </div>
 
-        <!-- 탭 4: COPY (다크 테마) -->
+        <!-- 탭 4: COPY -->
         <div id="tab-copy" class="hidden max-w-7xl mx-auto px-6 py-12">
             <div class="flex justify-between items-end mb-12 border-b border-gray-900 pb-6">
                 <h2 class="text-4xl md:text-6xl font-montserrat text-white tracking-tighter uppercase">Manifesto Copy.</h2>
@@ -191,7 +193,7 @@
             <div id="copy-grid" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>
         </div>
 
-        <!-- 탭 5: AI STUDIO (다크 테마) -->
+        <!-- 탭 5: AI STUDIO -->
         <div id="tab-aistudio" class="hidden max-w-[1400px] mx-auto px-6 py-12">
             <h2 class="text-4xl md:text-6xl font-montserrat text-white mb-12 text-center tracking-tighter uppercase">Creative Matcher.</h2>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -226,41 +228,44 @@
             </div>
         </div>
 
-        <!-- 탭 6: AI CHAT (유일한 화이트닝 탭, 롤링 갤러리 탑재) -->
+        <!-- 탭 6: AI CHAT (JAEMINI 화이트 챗 & 스마트 매칭) -->
         <div id="tab-chat" class="hidden w-full min-h-[calc(100vh-64px)] py-12">
             <div class="max-w-4xl mx-auto px-6 flex flex-col items-center">
+                <!-- 이름 복구 -->
                 <h2 class="text-4xl md:text-5xl font-montserrat text-black mb-8 tracking-tighter uppercase">Creative Assistant</h2>
                 
-                <!-- 대화창 인터페이스 -->
                 <div id="chat-window-area" class="w-full bg-white border border-gray-200 rounded-[2rem] p-6 shadow-2xl flex flex-col transition-all duration-700 h-[600px]">
-                    <!-- 채팅 내역 -->
                     <div id="ai-chat-box" class="flex-1 overflow-y-auto mb-4 flex flex-col gap-4 pr-2 scrollbar-thin p-4">
                         <div class="flex justify-start">
                             <div class="bg-gray-100 text-black px-6 py-4 rounded-3xl rounded-tl-sm text-sm max-w-[85%] font-medium leading-relaxed">
-                                안녕하세요! 크리에이티브 어시스턴트입니다.<br>무엇을 도와드릴까요? <b>'레퍼런스 보여줘'</b>라고 검색하시면 스크롤 가능한 아카이브 갤러리를 열어드립니다.
+                                안녕하세요! 크리에이티브 어시스턴트입니다.<br>
+                                ✨ <span class="text-gray-500">"위로가 필요할 때 쓸 카피 추천해줘"</span><br>
+                                🖼️ <span class="text-gray-500">"따뜻하고 감성적인 레퍼런스 이미지 찾아줘"</span><br>
+                                제가 문맥을 파악해서 아카이브의 자료를 큐레이션 해드릴게요!
                             </div>
                         </div>
                     </div>
 
-                    <!-- 텍스트 입력 영역 -->
-                    <div class="flex gap-3 mt-auto">
-                        <input type="text" id="ai-chat-input" class="flex-1 bg-gray-50 border border-gray-200 rounded-full px-6 py-4 text-black text-sm outline-none focus:border-black focus:ring-1 focus:ring-black transition-all placeholder-gray-400 font-medium" placeholder="메시지를 입력하세요...">
+                    <div class="flex gap-3 mt-auto relative">
+                        <input type="text" id="ai-chat-input" class="flex-1 bg-gray-50 border border-gray-200 rounded-full pl-12 pr-6 py-4 text-black text-sm outline-none focus:border-black focus:ring-1 focus:ring-black transition-all placeholder-gray-400 font-medium shadow-inner" placeholder="주제에 맞는 카피나 비주얼을 요청해 보세요...">
+                        <!-- 입력창 좌측에 마이크 아이콘 장식 추가 -->
+                        <div class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                        </div>
                         <button onclick="submitAIChat()" class="bg-black hover:bg-gray-800 text-white px-8 py-4 rounded-full font-montserrat font-bold uppercase tracking-widest shadow-md transition-transform active:scale-95 text-sm flex items-center gap-2">
                             Send <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                         </button>
                     </div>
                 </div>
 
-                <!-- 📚 스크롤링 스택 갤러리 영역 (초기엔 숨김) -->
-                <div id="rolling-gallery-area" class="hidden w-full mt-12 fade-in-up flex-col items-center">
+                <!-- 📚 스크롤링 스택 갤러리 영역 -->
+                <div id="rolling-gallery-area" class="hidden w-full mt-12 flex-col items-center">
                     <div class="w-full flex justify-between items-end mb-8 border-b border-gray-200 pb-4">
                         <h3 class="text-3xl font-montserrat text-black uppercase tracking-tight">Curated References</h3>
-                        <button onclick="closeRollingGallery()" class="text-sm font-bold text-gray-500 hover:text-black transition-colors flex items-center gap-1">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg> Close Gallery
+                        <button onclick="closeRollingGallery()" class="text-sm font-bold text-gray-500 hover:text-black transition-colors flex items-center gap-1 bg-white border border-gray-200 px-4 py-2 rounded-full shadow-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg> 닫기
                         </button>
                     </div>
-                    
-                    <!-- 스크롤 시 카드가 겹겹이 쌓이는 컨테이너 -->
                     <div id="stack-scroll-container" class="stack-container">
                         <!-- JS에서 카드가 주입됩니다 -->
                     </div>
@@ -288,7 +293,7 @@
         </div>
     </div>
 
-    <!-- 에디토리얼 프롬프트 모달 (다크 테마 복원) -->
+    <!-- 에디토리얼 프롬프트 모달 (다크 테마) -->
     <div id="prompt-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[700] hidden items-center justify-center p-4 md:p-10 overflow-y-auto">
         <div class="bg-[#050505] w-full max-w-6xl rounded-3xl relative flex flex-col md:flex-row gap-12 p-8 md:p-14 border border-gray-800 shadow-2xl min-h-[70vh] fade-in-up">
             <button onclick="closePromptModal()" class="absolute top-6 right-6 text-gray-500 hover:text-white transition-colors z-50 bg-[#111] border border-gray-800 rounded-full p-2">
@@ -345,7 +350,7 @@
         </div>
     </div>
 
-    <!-- 배너 목업 스튜디오 모달 (다크 테마 복원) -->
+    <!-- 배너 목업 스튜디오 모달 (다크 테마) -->
     <div id="mockup-studio-modal" class="fixed inset-0 bg-black/80 z-[400] hidden items-center justify-center p-4 md:p-8 backdrop-blur-sm">
         <div class="bg-[#050505] w-full max-w-6xl rounded-3xl relative flex flex-col lg:flex-row gap-8 p-8 border border-gray-800 shadow-2xl fade-in-up">
             
@@ -420,7 +425,7 @@
                 </div>
 
                 <div class="mt-auto pt-6">
-                    <button onclick="downloadMockup()" class="w-full bg-white hover:bg-gray-200 text-black py-4 rounded-xl font-montserrat font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-md text-sm">
+                    <button onclick="downloadMockup()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-4 rounded-xl font-montserrat font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-md text-sm">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4-4m0 0l-4-4m4 4V4"></path></svg> DOWNLOAD
                     </button>
                 </div>
@@ -463,11 +468,9 @@
                 if(btn) {
                     btn.className = 'uppercase font-bold tracking-[0.2em] transition-colors';
                     if (isChat) {
-                        // 화이트 테마 Nav
                         if (name === tabName) btn.classList.add('text-black');
                         else btn.classList.add('text-gray-400', 'hover:text-black');
                     } else {
-                        // 다크 테마 Nav
                         if (name === tabName) btn.classList.add('text-cyan-400');
                         else btn.classList.add('text-gray-500', 'hover:text-white');
                     }
@@ -687,7 +690,7 @@
         }
 
         // ==========================================
-        // 4. PPTX 파일 파싱 및 추출 로직 (깔끔한 다크존으로 복귀)
+        // 4. PPTX 파일 파싱 및 추출 로직 (깔끔한 다크존 유지)
         // ==========================================
         const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('file-input');
@@ -1064,6 +1067,9 @@
             showMsg("✨ 한국어 프롬프트 복사 완료!");
         };
 
+        // ==========================================
+        // 7. AI STUDIO 기능들 (배너 목업 등)
+        // ==========================================
         document.getElementById('find-visual-btn').addEventListener('click', async () => {
             const draft = document.getElementById('draft-copy-input').value.trim();
             if(!draft) return showMsg("카피 초안을 입력해주세요.");
@@ -1139,9 +1145,7 @@
             document.getElementById('aicopy-recommend-loading').classList.add('hidden');
         });
 
-        // ============================================================================
-        // 7. 배너 목업 스튜디오 (Canvas API - 다크 테마 기반 복구)
-        // ============================================================================
+        // 배너 목업 스튜디오 (다크 테마)
         window.mockupState = { text: '', imgSrc: null, ratio: '1:1', color: 'light', align: 'left', pos: 'bottom', fontSize: 64 };
 
         window.openMockupStudio = function(copyText) {
@@ -1241,7 +1245,7 @@
         };
         
         // ==========================================
-        // 8. AI 챗 (화이트닝 테마 유지 및 롤링 갤러리 구현)
+        // 8. AI 챗 (지능형 매칭 & 카피 추천 엔진 탑재)
         // ==========================================
         const aiChatInput = document.getElementById('ai-chat-input');
         const aiChatBox = document.getElementById('ai-chat-box');
@@ -1252,7 +1256,7 @@
             });
         }
 
-        window.submitAIChat = function() {
+        window.submitAIChat = async function() {
             const text = aiChatInput.value.trim();
             if (!text) return;
 
@@ -1267,42 +1271,101 @@
             aiChatInput.value = '';
             aiChatBox.scrollTop = aiChatBox.scrollHeight;
 
-            setTimeout(() => {
-                const keywords = ["레퍼런스", "추천", "찾아", "비주얼", "이미지", "자료"];
-                const isReferenceQuery = keywords.some(k => text.includes(k));
+            // 로딩 인디케이터
+            const loadingId = 'loading-' + Date.now();
+            aiChatBox.innerHTML += `
+                <div id="${loadingId}" class="flex justify-start mt-4">
+                    <div class="bg-gray-100 text-black border border-gray-200 px-6 py-4 rounded-3xl rounded-tl-sm text-sm max-w-[85%] font-medium shadow-sm flex items-center gap-2">
+                        <div class="loader w-4 h-4 border-gray-300 border-t-black"></div>
+                        Creative Assistant가 아카이브를 뒤적이는 중...
+                    </div>
+                </div>
+            `;
+            aiChatBox.scrollTop = aiChatBox.scrollHeight;
 
-                if (isReferenceQuery) {
-                    aiChatBox.innerHTML += `
-                        <div class="flex justify-start mt-4">
-                            <div class="bg-gray-100 text-black border border-gray-200 px-6 py-4 rounded-3xl rounded-tl-sm text-sm max-w-[85%] font-medium shadow-sm">
-                                네, 아카이브에서 선별된 프리미엄 레퍼런스들을 아래에 준비했습니다.<br>마우스를 스크롤해서 확인하시고, 클릭하면 대화면으로 확대합니다.
-                            </div>
-                        </div>
-                    `;
-                    showRollingGallery();
-                } else {
-                    const responses = [
-                        "흥미로운 의견이네요! 조금 더 구체적으로 말씀해 주실 수 있나요?",
-                        "좋은 방향입니다. 그 컨셉에 맞는 레퍼런스를 검색해 볼까요?",
-                        "이해했습니다. 관련된 크리에이티브 에셋을 찾으려면 '레퍼런스 보여줘'라고 입력해 보세요."
-                    ];
-                    const reply = responses[Math.floor(Math.random() * responses.length)];
-
-                    aiChatBox.innerHTML += `
-                        <div class="flex justify-start mt-4">
-                            <div class="bg-gray-100 text-black border border-gray-200 px-6 py-4 rounded-3xl rounded-tl-sm text-sm max-w-[85%] shadow-sm font-medium">
-                                ${reply}
-                            </div>
-                        </div>
-                    `;
+            try {
+                // 아카이브 데이터가 없으면 안내 후 종료
+                if (!archiveData || archiveData.length === 0) {
+                    throw new Error("아카이브에 저장된 데이터가 없습니다. 먼저 WORK 탭에서 PPT를 올려주세요.");
                 }
 
-                aiChatBox.scrollTop = aiChatBox.scrollHeight;
-            }, 600); 
+                // AI에게 분석을 맡기기 위해 아카이브 내용을 압축해서 준비
+                const safeArchive = archiveData.slice(0, 40).map(a => ({
+                    id: a.id, brand: a.brand, summary: a.summary, tags: a.visual_tags, copy: (a.manifesto_copy || '').substring(0, 150)
+                }));
+                
+                const prompt = `사용자 입력: "${text}"
+아카이브 데이터: ${JSON.stringify(safeArchive)}
+
+당신은 크리에이티브 어시스턴트입니다. 사용자의 입력을 분석하여 다음 3가지 행동 중 하나를 선택해 순수 JSON 형식으로 응답하세요. (마크다운 포맷 \`\`\`json 도 절대 사용하지 말고 오직 중괄호로 시작하는 텍스트만 출력하세요)
+
+1. 비주얼(레퍼런스/이미지/사진/영상) 추천이 필요한 경우:
+{"action": "visual", "message": "채팅창에 출력할 안내 메시지 (예: 요청하신 분위기에 맞는 레퍼런스를 아카이브에서 찾았어요. 확인해보세요!)", "recommended_ids": ["id1", "id2", ...최대 15개]}
+(주제, 태그, 컨셉이 사용자의 입력과 가장 잘 맞는 캠페인 id를 아카이브에서 고르세요)
+
+2. 카피(문구/글귀/텍스트) 추천이 필요한 경우:
+{"action": "copy", "message": "채팅창에 출력할 안내 메시지", "copy_list": [{"brand": "브랜드명", "copy": "추천하는 아카이브의 1~2줄짜리 카피 원문"}, ...최대 6개]}
+(사용자의 기분, 상황, 주제에 가장 잘 맞는 아카이브 카피의 일부를 발췌하세요)
+
+3. 단순 대화나 질문인 경우:
+{"action": "chat", "message": "사용자에게 자연스럽게 대답하는 메시지"}`;
+
+                const resTextRaw = await requestGemini(prompt);
+                const parsed = parseAIJSON(resTextRaw);
+
+                // 로딩 버블 삭제
+                const loadingEl = document.getElementById(loadingId);
+                if(loadingEl) loadingEl.remove();
+
+                // 기본 안내 멘트 출력
+                aiChatBox.innerHTML += `
+                    <div class="flex justify-start mt-4">
+                        <div class="bg-gray-100 text-black border border-gray-200 px-6 py-4 rounded-3xl rounded-tl-sm text-sm max-w-[85%] shadow-sm font-medium leading-relaxed">
+                            ${parsed.message}
+                        </div>
+                    </div>
+                `;
+
+                // 액션에 따른 UI 렌더링
+                if (parsed.action === 'visual' && parsed.recommended_ids && parsed.recommended_ids.length > 0) {
+                    showRollingGalleryByAI(parsed.recommended_ids);
+                } 
+                else if (parsed.action === 'copy' && parsed.copy_list && parsed.copy_list.length > 0) {
+                    // 카피 추천 리스트 UI 생성
+                    let copyHtml = `<div class="flex justify-start mt-2 w-full"><div class="px-4 py-2 w-full max-w-[85%]">`;
+                    copyHtml += `<div class="flex items-center gap-2 mb-4 text-gray-500 font-bold text-xs"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg> ${text}</div>`;
+                    copyHtml += `<div class="space-y-4 border-l-2 border-gray-200 pl-4">`;
+                    
+                    parsed.copy_list.forEach(item => {
+                        copyHtml += `
+                            <div class="group cursor-pointer hover:bg-gray-50 p-3 rounded-xl transition-colors border border-transparent hover:border-gray-200" onclick="navigator.clipboard.writeText('${item.copy}'); showMsg('카피가 복사되었습니다!');">
+                                <div class="text-lg font-bold text-gray-800 leading-snug"><span class="text-gray-300 mr-1">"</span>${item.copy}<span class="text-gray-300 ml-1">"</span></div>
+                                <div class="text-[10px] text-gray-400 mt-2 uppercase tracking-widest font-montserrat font-bold">— ${item.brand}</div>
+                            </div>
+                        `;
+                    });
+                    copyHtml += `</div></div></div>`;
+                    aiChatBox.innerHTML += copyHtml;
+                }
+
+            } catch (e) {
+                const loadingEl = document.getElementById(loadingId);
+                if(loadingEl) loadingEl.remove();
+                
+                aiChatBox.innerHTML += `
+                    <div class="flex justify-start mt-4">
+                        <div class="bg-red-50 text-red-600 border border-red-200 px-6 py-4 rounded-3xl rounded-tl-sm text-sm max-w-[85%] shadow-sm font-medium">
+                            앗, 아카이브를 뒤지다가 오류가 났어요. 다시 말해주실래요? (${e.message})
+                        </div>
+                    </div>
+                `;
+            }
+            
+            aiChatBox.scrollTop = aiChatBox.scrollHeight;
         };
 
-        // 📚 겹겹이 롤링되며 쌓이는 CSS 스크롤링 갤러리 로직
-        window.showRollingGallery = function() {
+        // 📚 지능형 AI 스크롤링 스택 갤러리 로직
+        window.showRollingGalleryByAI = function(recommendedIds) {
             const galleryArea = document.getElementById('rolling-gallery-area');
             const stackScroll = document.getElementById('stack-scroll-container');
             const chatWindow = document.getElementById('chat-window-area');
@@ -1310,15 +1373,19 @@
             // 대화창 축소 (위로 올라감)
             chatWindow.classList.replace('h-[600px]', 'h-[300px]');
             
-            let allImages = [];
-            archiveData.forEach(ad => { (ad.images || []).forEach((img, idx) => { allImages.push({ id: ad.id, brand: ad.brand, img: img, idx: idx }); }); });
-            allImages = allImages.sort(() => 0.5 - Math.random()).slice(0, 15);
+            let aiImages = [];
+            recommendedIds.forEach(id => {
+                const ad = archiveData.find(a => a.id === id);
+                if (ad && ad.images && ad.images.length > 0) {
+                    aiImages.push({ id: ad.id, brand: ad.brand, img: ad.images[0], idx: 0 });
+                }
+            });
             
-            if (allImages.length === 0) {
-                stackScroll.innerHTML = '<div class="text-black font-montserrat font-bold text-center mt-20 text-xl">NO VISUALS IN ARCHIVE</div>';
+            if (aiImages.length === 0) {
+                stackScroll.innerHTML = '<div class="text-black font-montserrat font-bold text-center mt-20 text-xl">NO MATCHING VISUALS</div>';
             } else {
                 let galleryHtml = '';
-                allImages.forEach((item, i) => {
+                aiImages.forEach((item, i) => {
                     galleryHtml += `
                         <div class="stack-card" style="--i: ${i};" onclick="window.openImageViewer('${item.img}', '${item.id}', ${item.idx})">
                             <img src="${item.img}" class="w-full h-full object-cover">
@@ -1347,6 +1414,7 @@
             galleryArea.classList.add('hidden');
             galleryArea.classList.remove('flex');
             
+            // 대화창 크기 복원
             chatWindow.classList.replace('h-[300px]', 'h-[600px]');
             chatWindow.scrollIntoView({ behavior: 'smooth', block: 'end' });
         };
