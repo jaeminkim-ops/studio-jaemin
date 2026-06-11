@@ -7,20 +7,19 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     
-    <!-- 폰트 업그레이드: 굵고 강렬한 Montserrat 추가 -->
+    <!-- 강렬한 타이틀 폰트 Montserrat Black -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         
         body { 
             font-family: 'Pretendard', sans-serif; 
-            background-color: #050505; 
+            background-color: #050505; /* 기본 다크 배경 */
             color: #f8f9fa; 
             overflow-x: hidden;
-            transition: background-color 0.5s ease; /* 테마 전환 부드럽게 */
+            transition: background-color 0.5s ease;
         }
         
-        /* 세련된 영문 폰트 클래스 */
         .font-montserrat { font-family: 'Montserrat', sans-serif; letter-spacing: -0.02em; }
 
         ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -37,139 +36,84 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        #cat-wrapper {
-            position: absolute; pointer-events: none; z-index: 50; transition: left 0.1s ease-out, top 0.1s ease-out;
-        }
-        #cat-scaler {
-            transform: translate(-50%, -50%) scale(0); opacity: 0; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
-        }
-        .is-active #cat-scaler { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
-
-        .file-particle {
-            position: absolute; font-size: 28px; opacity: 0; left: 50%; top: 50%; pointer-events: none; filter: drop-shadow(0 0 10px rgba(6,182,212,0.9)); z-index: 60;
-        }
-        
-        @keyframes suck-file {
-            0% { transform: translate(calc(-50% + var(--startX)), calc(-50% + var(--startY))) scale(1.5) rotate(var(--startRot)); opacity: 0; }
-            20% { opacity: 1; }
-            100% { transform: translate(-50%, -10px) scale(0) rotate(var(--endRot)); opacity: 0; }
-        }
-
         .render-optimize { content-visibility: auto; contain-intrinsic-size: 1px 400px; }
 
-        /* 🍕 피자 마스터 AI 모션 */
-        @keyframes jelly-idle {
-            0%, 100% { transform: scale(1, 1) translateY(0); filter: brightness(1) drop-shadow(0 10px 30px rgba(168,85,247,0.4)); }
-            50% { transform: scale(1.05, 0.95) translateY(-15px); filter: brightness(1.15) drop-shadow(0 20px 40px rgba(236,72,153,0.6)); }
-        }
-        @keyframes jelly-type {
-            0%, 100% { transform: scale(1, 1); filter: brightness(1.2) drop-shadow(0 0 20px rgba(6,182,212,0.8)); }
-            50% { transform: scale(1.15, 1.15); filter: brightness(1.5) drop-shadow(0 0 60px rgba(6,182,212,1)); }
-        }
-        @keyframes ai-talk {
-            0% { transform: scale(1, 1) translateY(0); filter: brightness(1.4) drop-shadow(0 0 50px rgba(236,72,153,0.8)); }
-            15% { transform: scale(1.4, 0.6) translateY(20px); }
-            30% { transform: scale(0.6, 1.5) translateY(-30px); filter: brightness(2) drop-shadow(0 0 80px rgba(6,182,212,1)); }
-            45% { transform: scale(1.25, 0.75) translateY(15px); }
-            60% { transform: scale(0.75, 1.3) translateY(-20px); filter: brightness(1.8) drop-shadow(0 0 70px rgba(236,72,153,1)); }
-            75% { transform: scale(1.15, 0.85) translateY(10px); }
-            90% { transform: scale(0.85, 1.1) translateY(-10px); }
-            100% { transform: scale(1, 1) translateY(0); filter: brightness(1.4) drop-shadow(0 0 50px rgba(236,72,153,0.8)); }
-        }
-        .pizza-idle { animation: jelly-idle 3s infinite ease-in-out; transform-origin: center center; }
-        .pizza-type { animation: jelly-type 0.8s infinite ease-in-out; transform-origin: center center; }
-        .pizza-talk { animation: ai-talk 0.5s infinite cubic-bezier(0.25, 0.46, 0.45, 0.94); transform-origin: center center; }
-
-        /* 🌶️ 스파이시 폴더 폭발 애니메이션 */
-        @keyframes beam-up {
-            0% { opacity: 0; transform: translateX(-50%) scaleY(0); transform-origin: bottom center; filter: hue-rotate(0deg); }
-            15% { opacity: 1; transform: translateX(-50%) scaleY(1); transform-origin: bottom center; filter: hue-rotate(45deg); }
-            85% { opacity: 1; transform: translateX(-50%) scaleY(1); transform-origin: bottom center; filter: hue-rotate(90deg); }
-            100% { opacity: 0; transform: translateX(-50%) scaleY(1.2); transform-origin: bottom center; filter: hue-rotate(180deg); }
-        }
-        @keyframes shoot-up {
-            0% { transform: translate(-50%, 0) scale(0.2) rotate(0deg); opacity: 1; }
-            70% { opacity: 1; }
-            100% { transform: translate(calc(-50% + var(--tx)), var(--ty)) scale(1.5) rotate(var(--rot)); opacity: 0; }
-        }
-
-        /* 📚 겹겹이 쌓이는 세로 스택형 갤러리 애니메이션 CSS */
-        .vertical-stack-wrapper {
-            width: 100%; height: 100%; 
-            overflow-y: auto; overflow-x: hidden;
-            display: flex; flex-direction: column; align-items: center;
-            padding: 80px 20px 200px 20px; 
-            scroll-behavior: smooth;
-        }
-        .vertical-stack-wrapper::-webkit-scrollbar { display: none; }
-        .vertical-stack-card {
+        /* 📚 롤링 가능한 스택형 갤러리 애니메이션 (AI Chat 화이트 테마 전용) */
+        .stack-container {
+            width: 100%; max-width: 800px; margin: 0 auto;
+            padding-bottom: 50vh; 
             position: relative;
-            width: 90%; max-width: 640px; aspect-ratio: 16/9;
-            border-radius: 16px; overflow: hidden; cursor: pointer;
-            box-shadow: 0 -20px 40px rgba(0,0,0,0.8), 0 10px 20px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.15);
-            margin-top: -220px; /* 카드가 세로로 겹치도록 음수 마진 적용 */
-            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.3s;
         }
-        .vertical-stack-card:first-child { margin-top: 0; }
-        .vertical-stack-card:hover {
-            transform: translateY(-40px) scale(1.05);
-            filter: brightness(1.2);
-            z-index: 1000 !important;
-            box-shadow: 0 0 50px rgba(0,0,0,0.9);
+        .stack-card {
+            position: sticky;
+            top: calc(80px + var(--i) * 20px); 
+            width: 100%;
+            aspect-ratio: 16/9;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.1), 0 20px 40px rgba(0,0,0,0.15);
+            margin-bottom: 40px;
+            cursor: pointer;
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.3s;
+            background: #fff;
+            border: 1px solid rgba(0,0,0,0.05);
+            transform-origin: top center;
+        }
+        .stack-card:hover {
+            transform: translateY(-20px) scale(1.02);
+        }
+        
+        /* 모달 등장 애니메이션 */
+        .fade-in-up { animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body class="antialiased selection:bg-cyan-500 selection:text-white pb-20">
 
-    <!-- SVG 픽셀 왜곡(Tear & Liquid) 필터 정의 -->
-    <svg class="hidden" width="0" height="0">
-        <filter id="tear-filter" x="-50%" y="-50%" width="200%" height="200%">
-            <feTurbulence id="svg-turb" type="fractalNoise" baseFrequency="0.01 0.1" numOctaves="2" result="noise" />
-            <feDisplacementMap id="svg-disp" in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
-        </filter>
-    </svg>
-
+    <!-- 헤더 (기본 다크 테마) -->
     <header class="bg-[#050505]/90 backdrop-blur-md text-white w-full sticky top-0 z-50 border-b border-gray-900 transition-colors duration-500" id="main-header">
         <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
             <h1 id="logo-text" class="text-xl font-montserrat tracking-tight cursor-pointer hover:text-cyan-400 transition-colors text-white" onclick="switchTab('extract')">
                 JAEMIN STUDIO<span class="text-cyan-400">.</span>
             </h1>
             
-            <nav class="hidden md:flex gap-8 text-[11px] font-bold tracking-[0.2em]">
-                <button id="nav-extract" class="uppercase text-cyan-400 transition-colors" onclick="switchTab('extract')">WORK</button>
-                <button id="nav-archive" class="uppercase text-gray-500 hover:text-white transition-colors" onclick="switchTab('archive')">ARCHIVE</button>
-                <button id="nav-visual" class="uppercase text-gray-500 hover:text-white transition-colors" onclick="switchTab('visual')">VISUAL</button>
-                <button id="nav-copy" class="uppercase text-gray-500 hover:text-white transition-colors" onclick="switchTab('copy')">COPY</button>
-                <button id="nav-aistudio" class="uppercase text-gray-500 hover:text-white transition-colors" onclick="switchTab('aistudio')">AI STUDIO</button>
-                <button id="nav-chat" class="uppercase text-pink-500 hover:text-pink-400 transition-colors" onclick="switchTab('chat')">PIZZA CHAT</button>
+            <nav class="hidden md:flex gap-8 text-[11px] font-bold tracking-[0.2em]" id="nav-container">
+                <button id="nav-extract" class="uppercase transition-colors text-cyan-400" onclick="switchTab('extract')">WORK</button>
+                <button id="nav-archive" class="uppercase transition-colors text-gray-500 hover:text-white" onclick="switchTab('archive')">ARCHIVE</button>
+                <button id="nav-visual" class="uppercase transition-colors text-gray-500 hover:text-white" onclick="switchTab('visual')">VISUAL</button>
+                <button id="nav-copy" class="uppercase transition-colors text-gray-500 hover:text-white" onclick="switchTab('copy')">COPY</button>
+                <button id="nav-aistudio" class="uppercase transition-colors text-gray-500 hover:text-white" onclick="switchTab('aistudio')">AI STUDIO</button>
+                <button id="nav-chat" class="uppercase transition-colors text-gray-500 hover:text-white" onclick="switchTab('chat')">AI CHAT</button>
             </nav>
 
-            <button onclick="toggleSettings()" class="text-gray-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-bold tracking-widest">
+            <button onclick="toggleSettings()" class="text-gray-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-bold tracking-widest" id="settings-btn">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                 SETTINGS
             </button>
         </div>
     </header>
 
-    <!-- 설정 모달 -->
+    <!-- 설정 모달 (다크 테마) -->
     <div id="settings-modal" class="fixed inset-0 bg-black/80 z-[200] hidden items-center justify-center backdrop-blur-sm">
-        <div class="bg-[#111] border border-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl relative">
+        <div class="bg-[#111] border border-gray-800 rounded-3xl p-8 max-w-md w-full shadow-2xl relative fade-in-up">
             <button onclick="toggleSettings()" class="absolute top-4 right-4 text-gray-500 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-            <h2 class="text-xl font-montserrat text-white mb-6">SYSTEM SETTINGS</h2>
+            <h2 class="text-xl font-montserrat text-white mb-6 uppercase">System Settings</h2>
             
             <div class="space-y-4">
                 <div class="flex justify-between items-center">
                     <span class="text-sm font-bold text-gray-400">DATABASE</span>
-                    <span id="auth-status" class="flex items-center gap-2 text-sm text-yellow-500"><div class="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>연결중...</span>
+                    <span id="auth-status" class="flex items-center gap-2 text-sm text-yellow-500 font-bold"><div class="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>연결중...</span>
                 </div>
-                <div id="db-error-msg" class="text-xs text-red-400 mt-2 hidden bg-red-500/10 p-3 rounded-lg border border-red-500/20"></div>
+                <div id="db-error-msg" class="text-xs text-red-400 mt-2 hidden bg-red-900/20 p-3 rounded-lg border border-red-800/50"></div>
                 
                 <div class="border-t border-gray-800 pt-6 mt-4">
                     <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">GEMINI API KEY</label>
                     <div class="flex gap-2">
-                        <input type="password" id="gemini-key-input" placeholder="AIzaSy..." class="flex-1 bg-black border border-gray-800 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-cyan-500">
-                        <button onclick="saveGeminiKey()" class="bg-cyan-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-cyan-500 transition">SAVE</button>
+                        <input type="password" id="gemini-key-input" placeholder="AIzaSy..." class="flex-1 bg-black border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-cyan-500 transition-all">
+                        <button onclick="saveGeminiKey()" class="bg-cyan-600 text-white px-5 py-3 rounded-xl text-sm font-bold hover:bg-cyan-500 transition shadow-md">SAVE</button>
                     </div>
                 </div>
             </div>
@@ -177,100 +121,89 @@
     </div>
 
     <main class="w-full">
-        <!-- 탭 1: WORK -->
+        <!-- 탭 1: WORK (다크닝, 애니메이션 제거된 깔끔한 드롭존) -->
         <div id="tab-extract" class="block">
-            <div class="w-full py-32 px-6 flex flex-col items-center justify-center text-center relative overflow-hidden bg-black min-h-[450px]">
+            <div class="w-full py-32 px-6 flex flex-col items-center justify-center text-center relative overflow-hidden bg-[#050505] min-h-[450px]">
                 <div class="relative z-10 max-w-4xl mx-auto px-4">
-                    <h2 id="quote-en" class="text-3xl md:text-5xl text-white mb-8 leading-snug transition-opacity duration-1000 opacity-0" style="font-family: 'Playfair Display', serif; font-style: italic;"></h2>
+                    <h2 id="quote-en" class="text-4xl md:text-6xl text-white mb-8 leading-snug transition-opacity duration-1000 opacity-0 font-montserrat tracking-tighter"></h2>
                     <p id="quote-ko" class="text-gray-400 font-medium text-sm md:text-base mb-6 transition-opacity duration-1000 opacity-0 tracking-wide"></p>
-                    <p id="quote-author" class="text-cyan-600 font-bold tracking-[0.2em] uppercase text-xs transition-opacity duration-1000 opacity-0"></p>
+                    <p id="quote-author" class="text-cyan-500 font-bold tracking-[0.2em] uppercase text-xs transition-opacity duration-1000 opacity-0"></p>
                 </div>
             </div>
 
             <div class="max-w-4xl mx-auto px-6 py-12">
                 <div id="drop-zone" class="bg-[#0a0a0a] border border-gray-800 hover:border-cyan-500 rounded-3xl p-16 text-center transition-all cursor-pointer group shadow-2xl relative overflow-hidden min-h-[350px] flex flex-col items-center justify-center">
-                    <div id="drop-content" class="relative z-10 transition-all duration-300 pointer-events-none group-hover:opacity-10 group-hover:scale-95">
+                    <div id="drop-content" class="relative z-10 transition-all duration-300 pointer-events-none group-hover:scale-95">
                         <svg class="w-12 h-12 text-gray-600 group-hover:text-cyan-400 transition-colors mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                        <h2 class="text-xl font-bold text-white mb-2 tracking-wide">광고 영상 PPTX(스토리보드/카피)를 넣어주세요</h2>
-                        <p class="text-gray-500 text-sm">여러 개의 TVCF 수집 PPTX 파일을 동시에 올릴 수 있습니다.</p>
-                    </div>
-
-                    <div id="cat-wrapper" style="left: 50%; top: 50%;">
-                        <div id="cat-scaler" class="relative flex justify-center items-center">
-                            <div id="particles-container" class="absolute inset-0"></div>
-                            <img id="cat-face" src="https://media.tenor.com/FbeNVF03LhoAAAAj/pop-cat-pop.gif" alt="Pop Cat" class="w-48 h-48 object-contain drop-shadow-[0_0_30px_rgba(6,182,212,0.8)]">
-                            <div class="hidden text-[130px] drop-shadow-[0_0_30px_rgba(6,182,212,0.8)] leading-none -mt-4">🙀</div>
-                        </div>
+                        <h2 class="text-xl font-bold text-white mb-2 tracking-wide">광고 영상 PPTX를 여기에 놓아주세요</h2>
+                        <p class="text-gray-500 text-sm">여러 개의 스토리보드/카피 파일을 한 번에 분석합니다.</p>
                     </div>
                     <input type="file" id="file-input" accept=".pptx" multiple class="hidden">
                 </div>
 
                 <div id="loading" class="hidden flex flex-col items-center justify-center py-20">
-                    <div class="loader mb-4"></div>
-                    <p class="text-cyan-400 font-bold tracking-widest uppercase text-sm" id="loading-text">Processing...</p>
+                    <div class="loader mb-4 border-gray-800 border-t-cyan-500"></div>
+                    <p class="text-cyan-400 font-montserrat font-black tracking-widest uppercase text-sm" id="loading-text">Processing...</p>
                 </div>
 
                 <div id="results-container" class="hidden flex flex-col gap-8 mt-12">
-                    <div class="bg-gradient-to-r from-[#111] to-[#1a1a1a] border border-gray-800 rounded-2xl p-8 flex justify-between items-center shadow-xl">
+                    <div class="bg-[#111] border border-gray-800 rounded-3xl p-8 flex justify-between items-center shadow-lg">
                         <div>
-                            <h3 class="text-lg font-bold text-white mb-1">광고 비주얼 & 카피 추출 완료</h3>
-                            <p class="text-sm text-gray-400">파일에서 스토리보드 영상 프레임과 카피 추출이 완료되었습니다.</p>
+                            <h3 class="text-lg font-bold text-white mb-1">분석 완료</h3>
+                            <p class="text-sm text-gray-400">데이터 추출이 끝났습니다.</p>
                         </div>
-                        <button id="analyze-save-btn" class="bg-white text-black px-8 py-3 rounded-full text-sm font-bold tracking-widest uppercase hover:bg-cyan-400 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.2)]">
-                            아카이브에 저장하기
+                        <button id="analyze-save-btn" class="bg-white text-black px-8 py-4 rounded-full text-sm font-bold tracking-widest uppercase hover:bg-gray-200 transition-colors shadow-md">
+                            아카이브에 저장
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 탭 2: ARCHIVE -->
+        <!-- 탭 2: ARCHIVE (다크 테마) -->
         <div id="tab-archive" class="hidden max-w-[1400px] mx-auto px-6 py-12">
             <div class="flex justify-between items-end mb-12 border-b border-gray-900 pb-6">
-                <!-- 폰트 디자인 교체 (Montserrat Black) -->
-                <h2 class="text-4xl md:text-5xl font-montserrat text-white tracking-tighter uppercase">RECENT ARCHIVE.</h2>
-                <input type="text" id="archive-search" placeholder="브랜드명 검색..." class="bg-[#111] border border-gray-700 text-white rounded-full px-5 py-2 text-sm outline-none focus:border-cyan-500 w-64 hidden md:block">
+                <h2 class="text-4xl md:text-6xl font-montserrat text-white tracking-tighter uppercase">Recent Archive.</h2>
+                <input type="text" id="archive-search" placeholder="브랜드명 검색..." class="bg-[#111] border border-gray-800 text-white rounded-full px-6 py-3 text-sm outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 w-72 hidden md:block shadow-sm">
             </div>
             <div id="archive-grid" class="flex flex-col gap-24 snap-y snap-mandatory"></div>
         </div>
 
-        <!-- 탭 3: VISUAL -->
+        <!-- 탭 3: VISUAL (다크 테마) -->
         <div id="tab-visual" class="hidden max-w-[1400px] mx-auto px-6 py-12">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4 border-b border-gray-900 pb-6">
                 <div>
-                    <!-- 폰트 디자인 교체 (Montserrat Black) -->
-                    <h2 class="text-4xl md:text-5xl font-montserrat text-white mb-2 tracking-tighter uppercase">Visual Boards.</h2>
-                    <p class="text-gray-500 text-sm">AI가 분석한 비주얼 특징별로 아카이브를 탐색하고 이미지를 한눈에 확인하세요.</p>
+                    <h2 class="text-4xl md:text-6xl font-montserrat text-white mb-2 tracking-tighter uppercase">Visual Boards.</h2>
+                    <p class="text-gray-400 text-sm">태그별로 아카이브를 탐색하고 이미지를 크게 확인하세요.</p>
                 </div>
-                <input type="text" id="visual-search" placeholder="브랜드 검색..." class="bg-[#111] border border-gray-700 text-white rounded-full px-5 py-2 text-sm outline-none focus:border-cyan-500 w-64 hidden md:block">
+                <input type="text" id="visual-search" placeholder="브랜드 검색..." class="bg-[#111] border border-gray-800 text-white rounded-full px-6 py-3 text-sm outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 w-72 hidden md:block shadow-sm">
             </div>
             <div id="visual-filters" class="flex flex-col gap-3 mb-12 w-full"></div>
             <div id="visual-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-x-6 gap-y-10"></div>
         </div>
 
-        <!-- 탭 4: COPY -->
+        <!-- 탭 4: COPY (다크 테마) -->
         <div id="tab-copy" class="hidden max-w-7xl mx-auto px-6 py-12">
             <div class="flex justify-between items-end mb-12 border-b border-gray-900 pb-6">
-                <!-- 폰트 디자인 교체 (Montserrat Black) -->
-                <h2 class="text-4xl md:text-5xl font-montserrat text-white tracking-tighter uppercase">Manifesto Copy.</h2>
-                <input type="text" id="copy-search" placeholder="카피 내용 검색..." class="bg-[#111] border border-gray-700 text-white rounded-full px-5 py-2 text-sm outline-none focus:border-cyan-500 w-64 hidden md:block">
+                <h2 class="text-4xl md:text-6xl font-montserrat text-white tracking-tighter uppercase">Manifesto Copy.</h2>
+                <input type="text" id="copy-search" placeholder="카피 검색..." class="bg-[#111] border border-gray-800 text-white rounded-full px-6 py-3 text-sm outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 w-72 hidden md:block shadow-sm">
             </div>
             <div id="copy-grid" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>
         </div>
 
-        <!-- 탭 5: AI STUDIO -->
+        <!-- 탭 5: AI STUDIO (다크 테마) -->
         <div id="tab-aistudio" class="hidden max-w-[1400px] mx-auto px-6 py-12">
-            <h2 class="text-4xl md:text-5xl font-montserrat text-white mb-12 text-center tracking-tighter uppercase transition-colors">Creative Matcher.</h2>
+            <h2 class="text-4xl md:text-6xl font-montserrat text-white mb-12 text-center tracking-tighter uppercase">Creative Matcher.</h2>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
                 
                 <!-- 왼쪽: Find Visuals -->
                 <div class="bg-[#0a0a0a] border border-gray-800 rounded-3xl p-8 md:p-10 shadow-2xl flex flex-col h-full">
                     <h3 class="text-3xl font-montserrat text-cyan-400 mb-2 uppercase">Find Visuals</h3>
-                    <p class="text-gray-400 text-sm mb-6">작성 중인 카피나 기획안을 입력하면 아카이브의 <span class="text-white font-bold">모든 캠페인 비주얼</span>을 스캔하여 분위기가 맞는 영감 무드보드를 만들어줍니다.</p>
-                    <textarea id="draft-copy-input" rows="4" placeholder="작성 중인 카피나 컨셉을 자유롭게 입력하세요..." class="w-full bg-black rounded-xl border border-gray-700 focus:border-cyan-500 text-white p-5 outline-none text-sm mb-6 resize-none"></textarea>
-                    <button id="find-visual-btn" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-4 rounded-xl font-bold uppercase tracking-widest transition-colors mb-6 shadow-lg shadow-cyan-900/20">Generate Visual Moodboard</button>
+                    <p class="text-gray-400 text-sm mb-6">기획안을 입력하면 아카이브의 분위기가 맞는 무드보드를 만들어줍니다.</p>
+                    <textarea id="draft-copy-input" rows="4" placeholder="작성 중인 카피나 컨셉을 자유롭게 입력하세요..." class="w-full bg-black rounded-2xl border border-gray-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-white p-5 outline-none text-sm mb-6 resize-none transition-all"></textarea>
+                    <button id="find-visual-btn" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-4 rounded-xl font-montserrat uppercase tracking-widest transition-colors mb-6 shadow-md">Generate Moodboard</button>
                     
-                    <div id="recommend-loading" class="hidden text-center py-10"><div class="loader mx-auto border-cyan-500 border-t-cyan-200"></div></div>
+                    <div id="recommend-loading" class="hidden text-center py-10"><div class="loader mx-auto border-cyan-800 border-t-cyan-400"></div></div>
                     <div id="recommend-grid" class="flex-1 overflow-y-auto pr-2 scrollbar-thin hidden">
                         <div id="moodboard-container" class="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-6"></div>
                     </div>
@@ -278,206 +211,216 @@
 
                 <!-- 오른쪽: Find Copy -->
                 <div class="bg-[#0a0a0a] border border-gray-800 rounded-3xl p-8 md:p-10 shadow-2xl flex flex-col h-full relative">
-                    <button onclick="window.openMockupStudio('테스트 카피입니다.\n이곳에서 배너 디자인을 완성하세요.')" class="absolute top-8 right-8 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white px-4 py-2 rounded-full text-[10px] font-bold tracking-widest uppercase shadow-lg shadow-pink-900/50 flex items-center gap-1.5 transition-transform hover:scale-105">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> 테스트 배너 목업 열기
+                    <button onclick="window.openMockupStudio('테스트 카피입니다.\n이곳에서 배너 디자인을 완성하세요.')" class="absolute top-8 right-8 bg-[#111] hover:bg-gray-800 text-white px-5 py-2.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all flex items-center gap-1.5 border border-gray-700">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> 배너 목업 테스트
                     </button>
 
                     <h3 class="text-3xl font-montserrat text-purple-400 mb-2 mt-2 uppercase">Copy Co-Pilot</h3>
-                    <p class="text-gray-400 text-sm mb-6">전달하고 싶은 메시지나 비주얼 느낌을 적어주세요. <span class="text-white font-bold">AI가 다수의 아이디어를 제안</span>합니다.</p>
-                    <textarea id="draft-visual-input" rows="4" placeholder="비주얼 느낌이나 전달하고 싶은 메시지를 적어주세요..." class="w-full bg-black rounded-xl border border-gray-700 focus:border-purple-500 text-white p-5 outline-none text-sm mb-6 resize-none"></textarea>
-                    <button id="find-copy-btn" class="w-full bg-purple-600 hover:bg-purple-500 text-white py-4 rounded-xl font-bold uppercase tracking-widest transition-colors mb-6 shadow-lg shadow-purple-900/20">Generate Copy Ideas</button>
+                    <p class="text-gray-400 text-sm mb-6">전달하고 싶은 메시지를 적어주시면 다수의 아이디어를 제안합니다.</p>
+                    <textarea id="draft-visual-input" rows="4" placeholder="비주얼 느낌이나 메시지를 적어주세요..." class="w-full bg-black rounded-2xl border border-gray-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-white p-5 outline-none text-sm mb-6 resize-none transition-all"></textarea>
+                    <button id="find-copy-btn" class="w-full bg-purple-600 hover:bg-purple-500 text-white py-4 rounded-xl font-montserrat uppercase tracking-widest transition-colors mb-6 shadow-md">Generate Copy Ideas</button>
                     
-                    <div id="aicopy-recommend-loading" class="hidden text-center py-10"><div class="loader mx-auto border-purple-500 border-t-purple-200"></div></div>
+                    <div id="aicopy-recommend-loading" class="hidden text-center py-10"><div class="loader mx-auto border-purple-800 border-t-purple-400"></div></div>
                     <div id="aicopy-recommend-grid" class="flex-1 overflow-y-auto pr-2 scrollbar-thin hidden flex-col gap-4"></div>
                 </div>
             </div>
         </div>
 
-        <!-- 탭 6: PIZZA CHAT (화이트 테마 & 겹겹이 쌓인 스택 갤러리 지원) -->
-        <div id="tab-chat" class="hidden w-full min-h-[calc(100vh-64px)] py-12 transition-colors duration-500">
+        <!-- 탭 6: AI CHAT (유일한 화이트닝 탭, 롤링 갤러리 탑재) -->
+        <div id="tab-chat" class="hidden w-full min-h-[calc(100vh-64px)] py-12">
             <div class="max-w-4xl mx-auto px-6 flex flex-col items-center">
-                <h2 class="text-4xl md:text-5xl font-montserrat text-black mb-8 tracking-tighter uppercase">Pizza Master AI</h2>
+                <h2 class="text-4xl md:text-5xl font-montserrat text-black mb-8 tracking-tighter uppercase">Creative Assistant</h2>
                 
-                <!-- 상단 AI 스크린 영역 (투명 블렌딩 효과를 위해 어둡게 유지하되, 확장 가능하게 설정) -->
-                <div id="ai-screen-area" class="w-full bg-[#050505] rounded-[2.5rem] border border-gray-200 shadow-2xl relative overflow-hidden flex flex-col items-center justify-center min-h-[400px] transition-all duration-700">
-                    
-                    <!-- 피자 아바타 래퍼 -->
-                    <div id="pizza-wrapper" class="flex-1 flex items-center justify-center w-full h-full absolute inset-0 group cursor-pointer transition-opacity duration-700 z-30" onclick="document.getElementById('avatar-upload').click()" title="클릭하여 피자 이미지를 업로드하세요">
-                        <div class="absolute inset-0 bg-pink-500/20 blur-[80px] rounded-full w-80 h-80 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
-                        <img id="pizza-avatar" src="image_597bd5.jpg" onerror="this.src='https://via.placeholder.com/300x300/111/ec4899?text=Click+to+Upload'" alt="Pizza Master" class="w-64 h-64 md:w-80 md:h-80 object-contain pizza-idle relative z-10 transition-all mix-blend-screen">
-                        
-                        <div class="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <span class="bg-black/80 text-white text-xs font-bold px-5 py-3 rounded-full border border-pink-500/50 shadow-[0_0_15px_rgba(236,72,153,0.5)]">🍕 클릭해서 피자 이미지 (PNG 추천) 불러오기</span>
-                        </div>
-                        <input type="file" id="avatar-upload" class="hidden" accept="image/*" onchange="loadAvatarImage(this)">
-                    </div>
-
-                    <!-- 📚 세로 스택형 비주얼 갤러리 영역 (초기엔 숨김) -->
-                    <div id="vertical-gallery" class="hidden w-full h-full absolute inset-0 z-40 bg-[#050505] opacity-0 transition-opacity duration-700">
-                        <button onclick="closeSpicyFolder()" class="absolute top-6 right-6 z-50 bg-white/20 hover:bg-white/40 text-white rounded-full px-5 py-2.5 backdrop-blur-md transition-colors font-bold text-sm flex items-center gap-2 border border-white/30">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg> 닫기
-                        </button>
-                        <div id="stack-scroll-container" class="vertical-stack-wrapper">
-                            <!-- 카드가 JS에 의해 이곳에 주입됩니다 -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 대화창 인터페이스 (완벽한 화이트 테마) -->
-                <div id="chat-window-area" class="w-full bg-white border border-gray-200 rounded-3xl p-6 shadow-xl flex flex-col mt-8 transition-all duration-700 origin-top">
+                <!-- 대화창 인터페이스 -->
+                <div id="chat-window-area" class="w-full bg-white border border-gray-200 rounded-[2rem] p-6 shadow-2xl flex flex-col transition-all duration-700 h-[600px]">
                     <!-- 채팅 내역 -->
-                    <div id="pizza-chat-box" class="flex-1 h-[300px] overflow-y-auto mb-4 flex flex-col gap-3 pr-2 scrollbar-thin">
+                    <div id="ai-chat-box" class="flex-1 overflow-y-auto mb-4 flex flex-col gap-4 pr-2 scrollbar-thin p-4">
                         <div class="flex justify-start">
-                            <div class="bg-white text-black border border-gray-200 px-5 py-3 rounded-2xl rounded-tl-sm text-sm max-w-[85%] shadow-sm font-medium">
-                                안녕! 난 피자 마스터야 🍕<br>나한테 말을 걸어봐! <b>'레퍼런스 찾아줘'</b>라고 하면 핫한 걸 보여줄게!
+                            <div class="bg-gray-100 text-black px-6 py-4 rounded-3xl rounded-tl-sm text-sm max-w-[85%] font-medium leading-relaxed">
+                                안녕하세요! 크리에이티브 어시스턴트입니다.<br>무엇을 도와드릴까요? <b>'레퍼런스 보여줘'</b>라고 검색하시면 스크롤 가능한 아카이브 갤러리를 열어드립니다.
                             </div>
                         </div>
                     </div>
 
                     <!-- 텍스트 입력 영역 -->
-                    <div class="flex gap-3">
-                        <input type="text" id="pizza-chat-input" class="flex-1 bg-white border border-gray-300 rounded-2xl px-5 py-4 text-black text-sm outline-none focus:border-black transition-colors placeholder-gray-400 font-bold" placeholder="피자 마스터에게 질문하기... (아무 글자나 타이핑 해보세요!)">
-                        <button onclick="submitPizzaChat()" class="bg-black hover:bg-gray-800 text-white px-8 py-4 rounded-2xl font-montserrat uppercase tracking-widest shadow-md transition-all active:scale-95 text-lg">SEND</button>
+                    <div class="flex gap-3 mt-auto">
+                        <input type="text" id="ai-chat-input" class="flex-1 bg-gray-50 border border-gray-200 rounded-full px-6 py-4 text-black text-sm outline-none focus:border-black focus:ring-1 focus:ring-black transition-all placeholder-gray-400 font-medium" placeholder="메시지를 입력하세요...">
+                        <button onclick="submitAIChat()" class="bg-black hover:bg-gray-800 text-white px-8 py-4 rounded-full font-montserrat font-bold uppercase tracking-widest shadow-md transition-transform active:scale-95 text-sm flex items-center gap-2">
+                            Send <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </button>
                     </div>
                 </div>
+
+                <!-- 📚 스크롤링 스택 갤러리 영역 (초기엔 숨김) -->
+                <div id="rolling-gallery-area" class="hidden w-full mt-12 fade-in-up flex-col items-center">
+                    <div class="w-full flex justify-between items-end mb-8 border-b border-gray-200 pb-4">
+                        <h3 class="text-3xl font-montserrat text-black uppercase tracking-tight">Curated References</h3>
+                        <button onclick="closeRollingGallery()" class="text-sm font-bold text-gray-500 hover:text-black transition-colors flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg> Close Gallery
+                        </button>
+                    </div>
+                    
+                    <!-- 스크롤 시 카드가 겹겹이 쌓이는 컨테이너 -->
+                    <div id="stack-scroll-container" class="stack-container">
+                        <!-- JS에서 카드가 주입됩니다 -->
+                    </div>
+                </div>
+
             </div>
         </div>
     </main>
 
-    <!-- 에디토리얼 프롬프트 모달 (이하 생략하지 않음) -->
-    <div id="prompt-modal" class="fixed inset-0 bg-black/95 z-[500] hidden items-center justify-center p-4 md:p-10 overflow-y-auto">
-        <div class="bg-[#050505] w-full max-w-6xl rounded-3xl relative flex flex-col md:flex-row gap-12 p-8 md:p-14 border border-gray-800 min-h-[70vh] shadow-[0_0_50px_rgba(0,0,0,0.8)]">
-            <button onclick="closePromptModal()" class="absolute top-6 right-6 text-gray-600 hover:text-white transition-colors z-50">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+    <!-- 🖼️ 단일 이미지 대화면 뷰어 모달 (다크 모드 유지) -->
+    <div id="image-viewer-modal" class="fixed inset-0 z-[600] hidden bg-black/95 backdrop-blur-md flex-col items-center justify-center p-6 md:p-12 transition-opacity">
+        <button onclick="closeImageViewer()" class="absolute top-6 right-6 md:top-8 md:right-8 bg-gray-900 hover:bg-gray-800 text-white rounded-full p-3 transition-colors z-50 border border-gray-800">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+        
+        <div class="w-full max-w-6xl flex-1 relative flex items-center justify-center mb-8">
+            <img id="viewer-main-image" src="" class="max-w-full max-h-full object-contain rounded-xl shadow-2xl border border-gray-800">
+        </div>
+        
+        <div class="flex gap-4">
+            <button id="viewer-extract-btn" class="bg-cyan-600 hover:bg-cyan-500 text-white px-8 py-4 rounded-full font-montserrat tracking-widest font-black uppercase shadow-xl hover:scale-105 transition-transform flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                Extract Prompt
+            </button>
+        </div>
+    </div>
+
+    <!-- 에디토리얼 프롬프트 모달 (다크 테마 복원) -->
+    <div id="prompt-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[700] hidden items-center justify-center p-4 md:p-10 overflow-y-auto">
+        <div class="bg-[#050505] w-full max-w-6xl rounded-3xl relative flex flex-col md:flex-row gap-12 p-8 md:p-14 border border-gray-800 shadow-2xl min-h-[70vh] fade-in-up">
+            <button onclick="closePromptModal()" class="absolute top-6 right-6 text-gray-500 hover:text-white transition-colors z-50 bg-[#111] border border-gray-800 rounded-full p-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
             
             <div class="md:w-1/3 flex flex-col gap-6">
                 <h2 class="text-4xl md:text-5xl font-montserrat text-white mb-2 tracking-tighter uppercase">
                     Visual<br>Prompt<br>Recipe.
                 </h2>
-                <div class="w-full aspect-video rounded-xl border border-gray-800 shadow-2xl overflow-hidden bg-black flex items-center justify-center">
+                <div class="w-full aspect-video rounded-xl border border-gray-800 shadow-md overflow-hidden bg-black flex items-center justify-center">
                     <img id="prompt-modal-img" src="" class="w-full h-full object-cover">
                 </div>
                 
                 <div class="flex flex-col gap-3 mt-2">
-                    <a id="prompt-modal-download" href="" download="visual.jpg" class="w-full bg-transparent border border-gray-700 hover:border-gray-500 text-gray-300 hover:text-white py-3 px-6 rounded-full font-bold tracking-widest text-center transition-colors flex items-center justify-center gap-2 text-sm">
+                    <a id="prompt-modal-download" href="" download="visual.jpg" class="w-full bg-[#111] border border-gray-800 hover:border-gray-500 text-gray-400 hover:text-white py-3 px-6 rounded-full font-bold tracking-widest text-center transition-colors flex items-center justify-center gap-2 text-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4-4m0 0l-4-4m4 4V4"></path></svg>
-                        원본 이미지 다운로드
+                        이미지 다운로드
                     </a>
-                    <a href="https://www.genspark.ai/ai_image" target="_blank" onclick="copyPromptKo(event)" class="w-full bg-white hover:bg-gray-200 text-black py-4 px-6 rounded-full font-bold tracking-widest text-center transition-colors flex items-center justify-center gap-2 shadow-lg">
+                    <a href="https://www.genspark.ai/ai_image" target="_blank" onclick="copyPromptKo(event)" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-4 px-6 rounded-full font-bold tracking-widest text-center transition-colors flex items-center justify-center gap-2 shadow-md">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        AI 이미지 생성하러 가기
+                        이미지 생성하러 가기
                     </a>
                 </div>
-                <p class="text-xs text-gray-500 text-center font-medium">버튼 클릭 시 마스터 프롬프트가 즉시 복사됩니다.<br>새 창에서 <strong class="text-gray-300">Ctrl+V (붙여넣기)</strong> 하세요.</p>
             </div>
 
             <div class="md:w-2/3 flex flex-col relative">
-                <div id="prompt-loading" class="absolute inset-0 bg-[#050505]/90 z-10 flex flex-col items-center justify-center rounded-xl">
-                    <div class="loader mb-4 border-cyan-500 border-t-cyan-200"></div>
-                    <span class="text-cyan-400 font-bold tracking-widest uppercase text-sm animate-pulse">이미지 요소 분석 중...</span>
+                <div id="prompt-loading" class="absolute inset-0 bg-[#050505]/90 z-10 flex flex-col items-center justify-center rounded-xl backdrop-blur-sm">
+                    <div class="loader mb-4 border-gray-800 border-t-cyan-500"></div>
+                    <span class="text-cyan-400 font-montserrat font-bold tracking-widest uppercase text-sm animate-pulse">Analyzing...</span>
                 </div>
 
                 <div class="flex-1 flex flex-col">
                     <div class="flex flex-col md:flex-row py-6 border-b border-t border-gray-800">
                         <div class="md:w-1/4 font-montserrat text-white text-base md:text-lg mb-2 md:mb-0 pr-4">MODEL &<br>SUBJECT</div>
-                        <textarea id="prompt-subject" class="md:w-3/4 bg-transparent text-gray-300 text-sm md:text-base leading-relaxed outline-none resize-none h-20 placeholder-gray-700" placeholder="피사체, 모델의 외모 및 의상..."></textarea>
+                        <textarea id="prompt-subject" class="md:w-3/4 bg-[#111] border border-gray-800 rounded-xl p-4 text-white text-sm md:text-base leading-relaxed outline-none focus:border-cyan-500 resize-none h-24 placeholder-gray-600 transition-colors" placeholder="피사체, 모델의 외모 및 의상..."></textarea>
                     </div>
                     <div class="flex flex-col md:flex-row py-6 border-b border-gray-800">
                         <div class="md:w-1/4 font-montserrat text-white text-base md:text-lg mb-2 md:mb-0 pr-4">BACKGROUND</div>
-                        <textarea id="prompt-background" class="md:w-3/4 bg-transparent text-gray-300 text-sm md:text-base leading-relaxed outline-none resize-none h-20 placeholder-gray-700" placeholder="배경, 시간대, 장소 등..."></textarea>
+                        <textarea id="prompt-background" class="md:w-3/4 bg-[#111] border border-gray-800 rounded-xl p-4 text-white text-sm md:text-base leading-relaxed outline-none focus:border-cyan-500 resize-none h-24 placeholder-gray-600 transition-colors" placeholder="배경, 시간대, 장소 등..."></textarea>
                     </div>
                     <div class="flex flex-col md:flex-row py-6 border-b border-gray-800">
                         <div class="md:w-1/4 font-montserrat text-white text-base md:text-lg mb-2 md:mb-0 pr-4">CAMERA &<br>LIGHTING</div>
-                        <textarea id="prompt-camera" class="md:w-3/4 bg-transparent text-gray-300 text-sm md:text-base leading-relaxed outline-none resize-none h-20 placeholder-gray-700" placeholder="카메라 구도, 렌즈 및 조명 톤..."></textarea>
+                        <textarea id="prompt-camera" class="md:w-3/4 bg-[#111] border border-gray-800 rounded-xl p-4 text-white text-sm md:text-base leading-relaxed outline-none focus:border-cyan-500 resize-none h-24 placeholder-gray-600 transition-colors" placeholder="카메라 구도, 렌즈 및 조명 톤..."></textarea>
                     </div>
                     <div class="flex flex-col md:flex-row py-6">
                         <div class="md:w-1/4 font-montserrat text-cyan-400 text-base md:text-lg mb-2 md:mb-0 pr-4">
-                            MASTER<br>PROMPT<br><span class="text-xs text-gray-500 font-sans font-normal tracking-wide">(Korean)</span>
+                            MASTER<br>PROMPT
                         </div>
-                        <textarea id="prompt-full-ko" class="md:w-3/4 bg-transparent text-cyan-100 text-base md:text-lg leading-relaxed outline-none resize-none h-32 font-medium placeholder-gray-700" placeholder="종합 한국어 프롬프트가 생성됩니다..."></textarea>
+                        <textarea id="prompt-full-ko" class="md:w-3/4 bg-cyan-900/10 border border-cyan-800/50 rounded-xl p-4 text-cyan-100 text-base md:text-lg leading-relaxed outline-none focus:border-cyan-400 resize-none h-32 font-medium placeholder-gray-600 transition-colors" placeholder="종합 한국어 프롬프트가 생성됩니다..."></textarea>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 배너 목업 스튜디오 모달 -->
-    <div id="mockup-studio-modal" class="fixed inset-0 bg-black/95 z-[400] hidden items-center justify-center p-4 md:p-8">
-        <div class="bg-[#050505] w-full max-w-6xl rounded-3xl relative flex flex-col lg:flex-row gap-8 p-8 border border-gray-800 shadow-[0_0_50px_rgba(6,182,212,0.15)]">
+    <!-- 배너 목업 스튜디오 모달 (다크 테마 복원) -->
+    <div id="mockup-studio-modal" class="fixed inset-0 bg-black/80 z-[400] hidden items-center justify-center p-4 md:p-8 backdrop-blur-sm">
+        <div class="bg-[#050505] w-full max-w-6xl rounded-3xl relative flex flex-col lg:flex-row gap-8 p-8 border border-gray-800 shadow-2xl fade-in-up">
             
             <div class="absolute top-6 right-6 flex gap-3 z-50">
-                <button onclick="removeMockupFeature()" class="text-[10px] bg-red-900/30 hover:bg-red-900/60 text-red-400 border border-red-800/50 px-3 py-1.5 rounded-full font-bold tracking-widest transition-colors flex items-center gap-1.5"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> 실험 기능 삭제</button>
-                <button onclick="closeMockupStudio()" class="text-gray-500 hover:text-white bg-black rounded-full p-2"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                <button onclick="removeMockupFeature()" class="text-[10px] bg-red-900/30 hover:bg-red-900/50 text-red-400 border border-red-800/50 px-4 py-2 rounded-full font-bold tracking-widest transition-colors flex items-center gap-1.5"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg> 삭제</button>
+                <button onclick="closeMockupStudio()" class="text-gray-500 hover:text-white bg-[#111] hover:bg-gray-800 rounded-full p-2 transition-colors border border-gray-800"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             </div>
 
             <div class="lg:w-1/2 flex flex-col items-center justify-center bg-[#0a0a0a] rounded-2xl border border-gray-800 p-4 min-h-[400px]">
-                <canvas id="mockup-canvas" class="max-w-full max-h-[60vh] object-contain shadow-2xl rounded-xl bg-black"></canvas>
+                <canvas id="mockup-canvas" class="max-w-full max-h-[60vh] object-contain shadow-lg rounded-xl bg-black"></canvas>
             </div>
 
             <div class="lg:w-1/2 flex flex-col gap-6 overflow-y-auto pr-2 max-h-[70vh] scrollbar-thin">
                 <div>
                     <h3 class="text-3xl font-montserrat text-cyan-400 mb-1 uppercase">Mockup Studio</h3>
-                    <p class="text-[11px] text-gray-500 font-bold">생성된 카피를 이미지 위에 빠르게 얹어보고 테스트합니다.</p>
+                    <p class="text-[11px] text-gray-500 font-bold">생성된 카피를 이미지 위에 얹어보세요.</p>
                 </div>
 
                 <div class="space-y-2">
-                    <label class="text-[10px] font-black text-white tracking-widest uppercase">1. 배경 이미지 선택</label>
+                    <label class="text-[10px] font-black text-gray-400 tracking-widest uppercase">1. 배경 이미지 선택</label>
                     <div id="mockup-thumbnails" class="flex flex-wrap gap-2">
-                        <div onclick="window.setMockupImage(null)" class="w-16 h-16 bg-gray-900 rounded-lg border-2 border-cyan-500 cursor-pointer mockup-thumb flex items-center justify-center text-gray-500 text-xs transition-colors">기본</div>
+                        <div onclick="window.setMockupImage(null)" class="w-16 h-16 bg-[#111] rounded-lg border-2 border-cyan-500 cursor-pointer mockup-thumb flex items-center justify-center text-gray-500 text-xs transition-colors hover:border-cyan-400">기본</div>
                     </div>
                 </div>
 
                 <div class="space-y-2 border-t border-gray-800 pt-4">
-                    <label class="text-[10px] font-black text-white tracking-widest uppercase">2. 카피 에디터 (엔터로 줄바꿈)</label>
-                    <textarea id="mockup-text-input" oninput="updateMockupState('text', this.value)" rows="3" class="w-full bg-[#111] border border-gray-700 rounded-xl p-3 text-white text-sm outline-none focus:border-cyan-500 resize-none font-bold"></textarea>
+                    <label class="text-[10px] font-black text-gray-400 tracking-widest uppercase">2. 카피 에디터</label>
+                    <textarea id="mockup-text-input" oninput="updateMockupState('text', this.value)" rows="3" class="w-full bg-[#111] border border-gray-800 rounded-xl p-4 text-white text-sm outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 resize-none font-medium transition-colors"></textarea>
                 </div>
 
                 <div class="space-y-4 border-t border-gray-800 pt-4">
-                    <label class="text-[10px] font-black text-white tracking-widest uppercase">3. 디자인 컨트롤</label>
+                    <label class="text-[10px] font-black text-gray-400 tracking-widest uppercase">3. 디자인 컨트롤</label>
                     
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-1.5">
                             <span class="text-[10px] text-gray-500">비율</span>
                             <div class="flex gap-1">
-                                <button id="mk-btn-ratio-11" onclick="updateMockupState('ratio', '1:1')" class="mk-btn-ratio flex-1 bg-cyan-600 text-white text-[10px] py-1.5 rounded-md font-bold">1:1</button>
-                                <button id="mk-btn-ratio-45" onclick="updateMockupState('ratio', '4:5')" class="mk-btn-ratio flex-1 bg-[#111] text-gray-400 text-[10px] py-1.5 rounded-md font-bold border border-gray-800">4:5</button>
-                                <button id="mk-btn-ratio-169" onclick="updateMockupState('ratio', '16:9')" class="mk-btn-ratio flex-1 bg-[#111] text-gray-400 text-[10px] py-1.5 rounded-md font-bold border border-gray-800">16:9</button>
+                                <button id="mk-btn-ratio-11" onclick="updateMockupState('ratio', '1:1')" class="mk-btn-ratio flex-1 bg-cyan-600 text-white text-[10px] py-2 rounded-lg font-bold transition-colors">1:1</button>
+                                <button id="mk-btn-ratio-45" onclick="updateMockupState('ratio', '4:5')" class="mk-btn-ratio flex-1 bg-[#111] text-gray-400 hover:bg-gray-800 text-[10px] py-2 rounded-lg font-bold border border-gray-800 transition-colors">4:5</button>
+                                <button id="mk-btn-ratio-169" onclick="updateMockupState('ratio', '16:9')" class="mk-btn-ratio flex-1 bg-[#111] text-gray-400 hover:bg-gray-800 text-[10px] py-2 rounded-lg font-bold border border-gray-800 transition-colors">16:9</button>
                             </div>
                         </div>
                         <div class="space-y-1.5">
                             <span class="text-[10px] text-gray-500">글자색</span>
                             <div class="flex gap-1">
-                                <button id="mk-btn-color-light" onclick="updateMockupState('color', 'light')" class="mk-btn-color flex-1 bg-cyan-600 text-white text-[10px] py-1.5 rounded-md font-bold">White</button>
-                                <button id="mk-btn-color-dark" onclick="updateMockupState('color', 'dark')" class="mk-btn-color flex-1 bg-[#111] text-gray-400 text-[10px] py-1.5 rounded-md font-bold border border-gray-800">Black</button>
+                                <button id="mk-btn-color-light" onclick="updateMockupState('color', 'light')" class="mk-btn-color flex-1 bg-cyan-600 text-white text-[10px] py-2 rounded-lg font-bold transition-colors">White</button>
+                                <button id="mk-btn-color-dark" onclick="updateMockupState('color', 'dark')" class="mk-btn-color flex-1 bg-[#111] text-gray-400 hover:bg-gray-800 text-[10px] py-2 rounded-lg font-bold border border-gray-800 transition-colors">Black</button>
                             </div>
                         </div>
                         <div class="space-y-1.5">
                             <span class="text-[10px] text-gray-500">가로 정렬</span>
                             <div class="flex gap-1">
-                                <button id="mk-btn-align-left" onclick="updateMockupState('align', 'left')" class="mk-btn-align flex-1 bg-cyan-600 text-white text-[10px] py-1.5 rounded-md font-bold">Left</button>
-                                <button id="mk-btn-align-center" onclick="updateMockupState('align', 'center')" class="mk-btn-align flex-1 bg-[#111] text-gray-400 text-[10px] py-1.5 rounded-md font-bold border border-gray-800">Center</button>
-                                <button id="mk-btn-align-right" onclick="updateMockupState('align', 'right')" class="mk-btn-align flex-1 bg-[#111] text-gray-400 text-[10px] py-1.5 rounded-md font-bold border border-gray-800">Right</button>
+                                <button id="mk-btn-align-left" onclick="updateMockupState('align', 'left')" class="mk-btn-align flex-1 bg-cyan-600 text-white text-[10px] py-2 rounded-lg font-bold transition-colors">Left</button>
+                                <button id="mk-btn-align-center" onclick="updateMockupState('align', 'center')" class="mk-btn-align flex-1 bg-[#111] text-gray-400 hover:bg-gray-800 text-[10px] py-2 rounded-lg font-bold border border-gray-800 transition-colors">Center</button>
+                                <button id="mk-btn-align-right" onclick="updateMockupState('align', 'right')" class="mk-btn-align flex-1 bg-[#111] text-gray-400 hover:bg-gray-800 text-[10px] py-2 rounded-lg font-bold border border-gray-800 transition-colors">Right</button>
                             </div>
                         </div>
                         <div class="space-y-1.5">
                             <span class="text-[10px] text-gray-500">세로 위치</span>
                             <div class="flex gap-1">
-                                <button id="mk-btn-pos-top" onclick="updateMockupState('pos', 'top')" class="mk-btn-pos flex-1 bg-[#111] text-gray-400 text-[10px] py-1.5 rounded-md font-bold border border-gray-800">Top</button>
-                                <button id="mk-btn-pos-center" onclick="updateMockupState('pos', 'center')" class="mk-btn-pos flex-1 bg-[#111] text-gray-400 text-[10px] py-1.5 rounded-md font-bold border border-gray-800">Center</button>
-                                <button id="mk-btn-pos-bottom" onclick="updateMockupState('pos', 'bottom')" class="mk-btn-pos flex-1 bg-cyan-600 text-white text-[10px] py-1.5 rounded-md font-bold">Bottom</button>
+                                <button id="mk-btn-pos-top" onclick="updateMockupState('pos', 'top')" class="mk-btn-pos flex-1 bg-[#111] text-gray-400 hover:bg-gray-800 text-[10px] py-2 rounded-lg font-bold border border-gray-800 transition-colors">Top</button>
+                                <button id="mk-btn-pos-center" onclick="updateMockupState('pos', 'center')" class="mk-btn-pos flex-1 bg-[#111] text-gray-400 hover:bg-gray-800 text-[10px] py-2 rounded-lg font-bold border border-gray-800 transition-colors">Center</button>
+                                <button id="mk-btn-pos-bottom" onclick="updateMockupState('pos', 'bottom')" class="mk-btn-pos flex-1 bg-cyan-600 text-white text-[10px] py-2 rounded-lg font-bold transition-colors">Bottom</button>
                             </div>
                         </div>
                     </div>
 
                     <div class="space-y-1.5">
-                        <span class="text-[10px] text-gray-500 flex justify-between">글자 크기 <span id="font-size-label">64px</span></span>
+                        <span class="text-[10px] text-gray-500 flex justify-between font-bold">글자 크기 <span id="font-size-label" class="text-white">64px</span></span>
                         <input type="range" min="30" max="150" value="64" oninput="document.getElementById('font-size-label').innerText = this.value+'px'; updateMockupState('fontSize', this.value)" class="w-full accent-cyan-500">
                     </div>
                 </div>
 
                 <div class="mt-auto pt-6">
-                    <button onclick="downloadMockup()" class="w-full bg-white hover:bg-gray-200 text-black py-4 rounded-xl font-montserrat uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,255,255,0.2)] text-lg">
+                    <button onclick="downloadMockup()" class="w-full bg-white hover:bg-gray-200 text-black py-4 rounded-xl font-montserrat font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-md text-sm">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4-4m0 0l-4-4m4 4V4"></path></svg> DOWNLOAD
                     </button>
                 </div>
@@ -486,7 +429,7 @@
     </div>
 
     <!-- 알림창 (Toast) -->
-    <div id="toast-message" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-black text-white border border-gray-800 px-8 py-3 rounded-full shadow-2xl font-bold tracking-wide transition-all duration-300 opacity-0 pointer-events-none z-[100] translate-y-4"></div>
+    <div id="toast-message" class="fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-white text-black border border-gray-200 px-8 py-3 rounded-full shadow-2xl font-bold tracking-wide transition-all duration-300 opacity-0 pointer-events-none z-[100] translate-y-4"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -508,36 +451,48 @@
             modal.classList.toggle('flex');
         }
 
+        // 🎨 테마 전환 핵심 로직 (AI CHAT만 화이트, 나머진 다크)
         window.switchTab = function(tabName) {
+            const isChat = tabName === 'chat';
+            
             ['extract', 'archive', 'visual', 'copy', 'aistudio', 'chat'].forEach(name => {
                 const tab = document.getElementById(`tab-${name}`);
                 if(tab) tab.style.display = name === tabName ? 'block' : 'none';
                 
                 const btn = document.getElementById(`nav-${name}`);
                 if(btn) {
-                    if (name === tabName) btn.classList.replace('text-gray-500', name === 'chat' ? 'text-pink-500' : 'text-cyan-400');
-                    else {
-                        btn.classList.replace('text-cyan-400', 'text-gray-500');
-                        btn.classList.replace('text-pink-500', 'text-gray-500');
+                    btn.className = 'uppercase font-bold tracking-[0.2em] transition-colors';
+                    if (isChat) {
+                        // 화이트 테마 Nav
+                        if (name === tabName) btn.classList.add('text-black');
+                        else btn.classList.add('text-gray-400', 'hover:text-black');
+                    } else {
+                        // 다크 테마 Nav
+                        if (name === tabName) btn.classList.add('text-cyan-400');
+                        else btn.classList.add('text-gray-500', 'hover:text-white');
                     }
                 }
             });
-            
-            // 🎨 화이트 테마 전환 로직 (PIZZA CHAT 진입 시 작동)
+
             const bodyBg = document.body;
             const header = document.getElementById('main-header');
             const logoText = document.getElementById('logo-text');
+            const settingsBtn = document.getElementById('settings-btn');
 
-            if (tabName === 'chat') {
+            if (isChat) {
                 bodyBg.style.backgroundColor = '#f8f9fa';
                 header.classList.replace('bg-[#050505]/90', 'bg-white/90');
                 header.classList.replace('border-gray-900', 'border-gray-200');
                 logoText.classList.replace('text-white', 'text-black');
+                logoText.querySelector('span').classList.replace('text-cyan-400', 'text-cyan-500');
+                if(settingsBtn) settingsBtn.className = 'text-gray-500 hover:text-black transition-colors flex items-center gap-2 text-sm font-bold tracking-widest';
             } else {
                 bodyBg.style.backgroundColor = '#050505';
                 header.classList.replace('bg-white/90', 'bg-[#050505]/90');
                 header.classList.replace('border-gray-200', 'border-gray-900');
                 logoText.classList.replace('text-black', 'text-white');
+                logoText.querySelector('span').classList.replace('text-cyan-500', 'text-cyan-400');
+                if(settingsBtn) settingsBtn.className = 'text-gray-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-bold tracking-widest';
             }
 
             if(tabName === 'archive') renderArchiveGrid();
@@ -556,14 +511,12 @@
                 strategySection.classList.add('hidden', 'opacity-0');
                 strategySection.classList.remove('block', 'opacity-100');
                 btn.innerHTML = `<span class="w-1.5 h-1.5 bg-purple-400 rounded-full animate-pulse"></span> View Campaign Strategy`;
-                btn.classList.replace('border-purple-800/40', 'border-gray-800');
             } else {
                 copySection.classList.add('hidden', 'opacity-0');
                 copySection.classList.remove('block', 'opacity-100');
                 strategySection.classList.remove('hidden', 'opacity-0');
                 strategySection.classList.add('block', 'opacity-100');
                 btn.innerHTML = `<span class="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse"></span> View Copy`;
-                btn.classList.replace('border-gray-800', 'border-purple-800/40');
             }
         };
 
@@ -619,7 +572,7 @@
                     const match = rawText.match(/\[[\s\S]*\]|\{[\s\S]*\}/);
                     if (match) return JSON.parse(match[0]);
                 } catch (err) {}
-                throw new Error("AI가 데이터 형식을 벗어난 답변을 보냈습니다.");
+                throw new Error("AI 형식을 벗어난 답변입니다.");
             }
         }
 
@@ -657,7 +610,7 @@
                             const data = await response.json();
                             if (data?.candidates?.[0]?.finishReason === 'SAFETY') throw new Error("안전 필터 작동됨.");
                             if (data?.candidates?.[0]?.content?.parts?.[0]?.text) return data.candidates[0].content.parts[0].text;
-                            throw new Error("응답이 비어있습니다.");
+                            throw new Error("응답 비어있음");
                         } else {
                             const errText = await response.text();
                             if (response.status === 429) throw new Error(`API 한도 일시 초과`);
@@ -709,7 +662,7 @@
             onAuthStateChanged(auth, user => {
                 currentUser = user;
                 if (user) {
-                    authStatus.innerHTML = `<div class="w-2 h-2 bg-green-400 rounded-full shadow-[0_0_8px_#4ade80]"></div>연결됨`;
+                    authStatus.innerHTML = `<div class="w-2 h-2 bg-green-500 rounded-full"></div>연결됨`;
                     loadArchiveData(); 
                 }
             });
@@ -733,50 +686,16 @@
             return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), wait); };
         }
 
+        // ==========================================
+        // 4. PPTX 파일 파싱 및 추출 로직 (깔끔한 다크존으로 복귀)
+        // ==========================================
         const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('file-input');
-        const catWrapper = document.getElementById('cat-wrapper');
-        const particlesContainer = document.getElementById('particles-container');
-        let vacuumInterval; let isHovering = false;
-
-        function moveCat(e) {
-            if (!isHovering) return;
-            const rect = dropZone.getBoundingClientRect();
-            let clientX = e.clientX; let clientY = e.clientY;
-            if (clientX === undefined && e.touches) { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; }
-            if (clientX !== undefined) { catWrapper.style.left = `${clientX - rect.left}px`; catWrapper.style.top = `${clientY - rect.top}px`; }
-        }
-
-        function startVacuum(e) {
-            if (isHovering) return;
-            isHovering = true;
-            dropZone.classList.add('border-cyan-500', 'bg-cyan-900/10'); catWrapper.classList.add('is-active');
-            if(e) moveCat(e);
-            
-            const icons = ['📄', '📁', '✨', '⚡', '💡', '🎬'];
-            vacuumInterval = setInterval(() => {
-                const p = document.createElement('div'); p.className = 'file-particle'; p.innerText = icons[Math.floor(Math.random() * icons.length)];
-                const angle = Math.random() * Math.PI * 2; const distance = 120 + Math.random() * 80;
-                p.style.setProperty('--startX', `${Math.cos(angle) * distance}px`); p.style.setProperty('--startY', `${Math.sin(angle) * distance}px`);
-                p.style.setProperty('--startRot', `${(Math.random() - 0.5) * 90}deg`); p.style.setProperty('--endRot', `${(Math.random() - 0.5) * 360}deg`);
-                p.style.animation = `suck-file ${0.3 + Math.random()*0.3}s ease-in forwards`;
-                particlesContainer.appendChild(p);
-                setTimeout(() => p.remove(), 600);
-            }, 50);
-        }
-
-        function stopVacuum() {
-            isHovering = false;
-            dropZone.classList.remove('border-cyan-500', 'bg-cyan-900/10'); catWrapper.classList.remove('is-active');
-            clearInterval(vacuumInterval); particlesContainer.innerHTML = '';
-            setTimeout(() => { if(!isHovering) { catWrapper.style.left = `50%`; catWrapper.style.top = `50%`; } }, 300);
-        }
 
         dropZone.addEventListener('click', () => fileInput.click());
-        dropZone.addEventListener('mouseenter', startVacuum); dropZone.addEventListener('mousemove', moveCat); dropZone.addEventListener('mouseleave', stopVacuum);
-        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); if (!isHovering) startVacuum(e); moveCat(e); });
-        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('drag-over'); stopVacuum(); });
-        dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('drag-over'); stopVacuum(); if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); });
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-cyan-500', 'bg-cyan-900/10'); });
+        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('border-cyan-500', 'bg-cyan-900/10'); });
+        dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('border-cyan-500', 'bg-cyan-900/10'); if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); });
         fileInput.addEventListener('change', (e) => { if (e.target.files.length) handleFiles(e.target.files); });
 
         const loading = document.getElementById('loading');
@@ -796,7 +715,7 @@
             resultsContainer.classList.add('hidden'); loading.classList.remove('hidden');
             extractedFilesBatch = [];
             for(let i=0; i<pptxFiles.length; i++) {
-                document.getElementById('loading-text').innerText = `[${i+1}/${pptxFiles.length}] 추출 중...`;
+                document.getElementById('loading-text').innerText = `[${i+1}/${pptxFiles.length}] 파싱 중...`;
                 try {
                     const extracted = await parsePPTX(pptxFiles[i]);
                     if(extracted && (extracted.text.length > 0 || extracted.imagesBase64.length > 0)) extractedFilesBatch.push(extracted);
@@ -805,8 +724,8 @@
             loading.classList.add('hidden');
             if (extractedFilesBatch.length > 0) {
                 resultsContainer.classList.remove('hidden'); analyzeSaveBtn.disabled = false;
-                analyzeSaveBtn.innerText = `아카이브에 저장하기 (${extractedFilesBatch.length}개)`;
-            } else showMsg("데이터 추출에 실패했습니다.");
+                analyzeSaveBtn.innerText = `아카이브에 저장 (${extractedFilesBatch.length})`;
+            } else showMsg("데이터 추출 실패");
         }
 
         async function parsePPTX(file) {
@@ -873,19 +792,10 @@
                 analyzeSaveBtn.innerText = `AI 분석 중 [${i+1}/${extractedFilesBatch.length}]...`;
                 let analysisObj = { brand: fileObj.filename.replace(".pptx", ""), category: "ETC", summary: "", keywords: [], visual_tags: [], manifesto_copy: fileObj.text, market_analysis: "", target_audience: "", creative_strategy: "" };
                 try {
-                    const prompt = `다음은 수집된 TVCF 광고 영상의 PPTX 파일 내 원본 텍스트와 이미지입니다.
-                    실제 광고 카피 문장들을 임의로 창작하지 말고, 화보집처럼 문단을 나누어 정교하게 정렬하세요. 
-                    해당 브랜드를 바탕으로 광고업계 트렌드 분석, 타겟 고객층, 크리에이티브 전략을 추론해 주세요.
-                    비주얼 특징 카테고리 태그도 5개 추출해주세요.
-                    반드시 순수 JSON 구조로만 답변하세요:
-                    {"brand": "...", "category": "...", "summary": "...", "keywords": ["..."], "visual_tags": ["톤:...", "배경:..."], "manifesto_copy": "...", "market_analysis": "...", "target_audience": "...", "creative_strategy": "..."}
-                    [원본 텍스트]: ${fileObj.text.substring(0, 3000)}`;
+                    const prompt = `다음은 수집된 TVCF 광고 영상 PPTX 파일의 원본 텍스트와 이미지입니다. 카피를 임의로 창작하지 말고 문단을 나누어 정렬하세요. 브랜드 트렌드, 타겟, 전략을 추론하고 비주얼 태그를 5개 추출하세요. 반드시 아래 JSON 형식으로 응답: {"brand": "...", "category": "...", "summary": "...", "keywords": ["..."], "visual_tags": ["톤:...", "배경:..."], "manifesto_copy": "...", "market_analysis": "...", "target_audience": "...", "creative_strategy": "..."} \n\n[원본]: ${fileObj.text.substring(0, 3000)}`;
                     
                     const resTextRaw = await requestGemini(prompt, fileObj.imagesBase64.slice(0, 3));
-                    try {
-                        const parsed = parseAIJSON(resTextRaw);
-                        analysisObj = { ...analysisObj, ...parsed };
-                    } catch (jsonErr) {}
+                    try { const parsed = parseAIJSON(resTextRaw); analysisObj = { ...analysisObj, ...parsed }; } catch (jsonErr) {}
 
                     const finalizedCopy = cleanCopyText(analysisObj.manifesto_copy || fileObj.text) || "";
 
@@ -898,13 +808,13 @@
                     successCount++;
                 } catch (e) { console.error(e); lastErrorMsg = e.message; }
             }
-            analyzeSaveBtn.disabled = false; analyzeSaveBtn.innerText = "아카이브에 저장하기";
+            analyzeSaveBtn.disabled = false; analyzeSaveBtn.innerText = "아카이브에 저장";
             if (successCount > 0) { resultsContainer.classList.add('hidden'); showMsg(`성공적으로 ${successCount}개 저장!`); switchTab('archive'); } 
             else { showMsg(`저장 실패: ${lastErrorMsg}`); }
         });
 
         // ==========================================
-        // 5. 그리드 렌더링 (아카이브, 비주얼, 카피)
+        // 5. 그리드 렌더링 (아카이브, 비주얼, 카피) - 다크 테마 기반 복구
         // ==========================================
         function renderArchiveGrid() {
             const term = document.getElementById('archive-search').value.toLowerCase();
@@ -922,40 +832,40 @@
 
                 gridHTML += `
                     <div class="archive-card render-optimize group bg-[#090909] border border-gray-800 rounded-[2.5rem] overflow-hidden flex flex-col md:flex-row hover:border-cyan-500/50 transition duration-500 shadow-2xl h-auto md:h-[480px] max-h-[480px] mb-12 relative">
-                        <div class="md:w-6/12 bg-[#030303] p-6 flex flex-col justify-center h-full overflow-hidden">
+                        <div class="md:w-6/12 bg-[#030303] p-6 flex flex-col justify-center h-full overflow-hidden border-r border-gray-800/50">
                             <div class="grid grid-cols-2 gap-3.5 h-full overflow-y-auto pr-1.5 scrollbar-thin">
-                                ${imgsHtml || '<div class="text-gray-800 text-sm col-span-full text-center py-20">NO VISUALS</div>'}
+                                ${imgsHtml || '<div class="text-gray-600 text-sm col-span-full text-center py-20 font-montserrat">NO VISUALS</div>'}
                             </div>
                         </div>
-                        <div class="md:w-6/12 p-8 md:p-10 flex flex-col justify-between relative bg-gradient-to-br from-[#111] to-black z-10 h-full overflow-hidden">
+                        <div class="md:w-6/12 p-8 md:p-10 flex flex-col justify-between relative bg-[#090909] z-10 h-full overflow-hidden">
                             <div class="flex justify-between items-center mb-3">
-                                <span class="text-cyan-400 font-bold text-xs tracking-[0.2em] uppercase">TVCF VISUAL & COPY</span>
+                                <span class="text-cyan-400 font-montserrat font-bold text-xs tracking-[0.2em] uppercase">Visual & Copy</span>
                             </div>
                             <div class="relative flex-1 overflow-hidden h-[280px]">
                                 <div class="copy-section transition-all duration-300 opacity-100 block text-left">
-                                    <h3 class="text-3xl font-black text-white mb-1 tracking-tighter leading-none text-left">${ad.brand}</h3>
-                                    <h4 class="text-gray-400 font-semibold text-xs mb-4 tracking-wide text-left">${ad.summary}</h4>
-                                    <div class="text-left border-l-2 border-cyan-500/30 pl-4 text-gray-200 text-sm md:text-base leading-loose font-sans whitespace-pre-wrap max-h-[190px] overflow-y-auto pr-2 tracking-wide font-light scrollbar-thin">${cleanCopyText(ad.manifesto_copy)}</div>
+                                    <h3 class="text-3xl font-black text-white mb-1 tracking-tighter leading-none">${ad.brand}</h3>
+                                    <h4 class="text-gray-400 font-semibold text-xs mb-4 tracking-wide">${ad.summary}</h4>
+                                    <div class="border-l-2 border-cyan-500/30 pl-4 text-gray-300 text-sm md:text-base leading-loose whitespace-pre-wrap max-h-[190px] overflow-y-auto pr-2 font-medium scrollbar-thin">${cleanCopyText(ad.manifesto_copy)}</div>
                                 </div>
                                 <div class="strategy-section transition-all duration-300 opacity-0 hidden text-left h-full">
-                                    <h3 class="text-xl font-black text-white mb-4 tracking-tighter leading-none text-left">${ad.brand}</h3>
-                                    <div class="space-y-4 overflow-y-auto max-h-[220px] pr-2 scrollbar-thin text-left">
-                                        <div class="space-y-1 text-left border-l-2 border-purple-500/30 pl-3">
-                                            <h5 class="text-[10px] font-black text-purple-400">📊 MARKET TREND</h5><p class="text-gray-300 text-sm">${ad.market_analysis}</p>
+                                    <h3 class="text-xl font-black text-white mb-4 tracking-tighter leading-none">${ad.brand}</h3>
+                                    <div class="space-y-4 overflow-y-auto max-h-[220px] pr-2 scrollbar-thin">
+                                        <div class="space-y-1 border-l-2 border-cyan-500/50 pl-3">
+                                            <h5 class="text-[10px] font-black text-cyan-400 font-montserrat">MARKET TREND</h5><p class="text-gray-400 text-sm">${ad.market_analysis}</p>
                                         </div>
-                                        <div class="space-y-1 text-left border-l-2 border-cyan-500/30 pl-3">
-                                            <h5 class="text-[10px] font-black text-cyan-400">🎯 TARGET</h5><p class="text-gray-300 text-sm">${ad.target_audience}</p>
+                                        <div class="space-y-1 border-l-2 border-purple-500/50 pl-3">
+                                            <h5 class="text-[10px] font-black text-purple-400 font-montserrat">TARGET</h5><p class="text-gray-400 text-sm">${ad.target_audience}</p>
                                         </div>
-                                        <div class="space-y-1 text-left border-l-2 border-yellow-500/30 pl-3">
-                                            <h5 class="text-[10px] font-black text-yellow-400">💡 CREATIVE INTENT</h5><p class="text-gray-300 text-sm">${ad.creative_strategy}</p>
+                                        <div class="space-y-1 border-l-2 border-yellow-500/50 pl-3">
+                                            <h5 class="text-[10px] font-black text-yellow-400 font-montserrat">CREATIVE INTENT</h5><p class="text-gray-400 text-sm">${ad.creative_strategy}</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="flex items-center justify-between pt-4 border-t border-gray-800 mt-auto">
-                                <div class="flex flex-wrap gap-1.5">${(ad.keywords||[]).map(k=>`<span class="text-[9px] border border-gray-800 text-gray-500 px-2 py-0.5 rounded-full">#${k}</span>`).join('')}</div>
-                                <button onclick="toggleCardStrategy(this)" class="strategy-toggle-btn text-[9px] text-gray-400 hover:text-cyan-400 flex items-center gap-1.5 bg-gray-900/60 px-3 py-1.5 rounded-full border border-gray-800 transition font-black tracking-widest uppercase">
-                                    <span class="w-1.5 h-1.5 bg-purple-400 rounded-full animate-pulse"></span> View Campaign Strategy
+                                <div class="flex flex-wrap gap-1.5">${(ad.keywords||[]).map(k=>`<span class="text-[9px] bg-[#111] text-gray-400 px-2 py-0.5 rounded-full font-bold border border-gray-800">#${k}</span>`).join('')}</div>
+                                <button onclick="toggleCardStrategy(this)" class="strategy-toggle-btn text-[9px] text-gray-400 hover:text-white flex items-center gap-1.5 bg-[#111] px-3 py-1.5 rounded-full border border-gray-800 transition font-black tracking-widest uppercase">
+                                    <span class="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-pulse"></span> View Strategy
                                 </button>
                             </div>
                         </div>
@@ -963,7 +873,7 @@
                 `;
             });
             
-            if (filtered.length > maxItems) gridHTML += `<div class="text-center py-10 text-gray-500 text-xs font-bold tracking-widest uppercase bg-[#0a0a0a] rounded-2xl border border-gray-800">최대 ${maxItems}개 캠페인 표시중</div>`;
+            if (filtered.length > maxItems) gridHTML += `<div class="text-center py-10 text-gray-500 text-xs font-bold tracking-widest font-montserrat uppercase bg-[#0a0a0a] rounded-2xl border border-gray-800">Showing top ${maxItems} campaigns</div>`;
             grid.innerHTML = gridHTML; 
         }
         document.getElementById('archive-search').addEventListener('input', debounce(renderArchiveGrid, 300));
@@ -990,22 +900,22 @@
             
             if(filterContainer) {
                 let tagsHTML = `<div class="flex flex-col gap-3 w-full">`;
-                tagsHTML += `<div class="flex mb-3"><button onclick="setVisualFilter('ALL')" class="${currentVisualFilter === 'ALL' ? 'bg-cyan-500 text-white border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.5)]' : 'bg-[#111] text-gray-400 hover:text-white border-gray-800'} px-8 py-3 rounded-full text-xs font-black transition border tracking-widest uppercase flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg> ALL (전체보기)</button></div>`;
+                tagsHTML += `<div class="flex mb-3"><button onclick="setVisualFilter('ALL')" class="${currentVisualFilter === 'ALL' ? 'bg-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)]' : 'bg-[#111] text-gray-400 hover:text-white border-gray-800'} px-8 py-3 rounded-full text-xs font-montserrat font-black transition border tracking-widest uppercase flex items-center gap-2">ALL</button></div>`;
 
-                const catLabels = { '톤': '🎨 VIBE (분위기/톤)', '배경': '🌃 SPACE (배경)', '인물': '👤 MODEL (인물)', '카피': '🔠 TYPO (카피)', '카메라': '🎥 CAMERA (카메라 구도)', '기타': '🏷️ ETC (기타)' };
+                const catLabels = { '톤': 'VIBE', '배경': 'SPACE', '인물': 'MODEL', '카피': 'TYPO', '카메라': 'CAMERA', '기타': 'ETC' };
 
                 for (const [cat, tagSet] of Object.entries(tagsByCategory)) {
                     if (tagSet.size === 0) continue;
                     const isOpen = tagSet.has(currentVisualFilter) ? 'open' : '';
-                    tagsHTML += `<details ${isOpen} class="bg-[#0a0a0a] rounded-2xl border border-gray-800 overflow-hidden group transition-all">`;
-                    tagsHTML += `<summary class="cursor-pointer p-4 md:p-5 flex justify-between items-center list-none [&::-webkit-details-marker]:hidden hover:bg-gray-900/50 transition-colors select-none">`;
-                    tagsHTML += `<div class="flex items-center gap-3"><span class="text-xs md:text-sm font-black text-cyan-500 tracking-widest uppercase">${catLabels[cat]}</span><span class="bg-[#111] border border-gray-700 text-gray-400 text-[10px] px-2.5 py-0.5 rounded-full font-bold">${tagSet.size}</span></div>`;
-                    tagsHTML += `<svg class="w-5 h-5 text-gray-600 transition-transform duration-300 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></summary>`;
-                    tagsHTML += `<div class="p-4 md:p-5 pt-3 border-t border-gray-800/80 flex flex-wrap gap-2 bg-[#050505]">`;
+                    tagsHTML += `<details ${isOpen} class="bg-[#0a0a0a] rounded-2xl border border-gray-800 overflow-hidden group transition-all shadow-sm">`;
+                    tagsHTML += `<summary class="cursor-pointer p-4 md:p-5 flex justify-between items-center list-none [&::-webkit-details-marker]:hidden hover:bg-gray-900 transition-colors select-none">`;
+                    tagsHTML += `<div class="flex items-center gap-3"><span class="text-xs md:text-sm font-black font-montserrat text-cyan-500 tracking-widest uppercase">${catLabels[cat]}</span><span class="bg-[#111] text-gray-500 text-[10px] px-2.5 py-0.5 rounded-full font-bold border border-gray-800">${tagSet.size}</span></div>`;
+                    tagsHTML += `<svg class="w-5 h-5 text-gray-500 transition-transform duration-300 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></summary>`;
+                    tagsHTML += `<div class="p-4 md:p-5 pt-3 border-t border-gray-800/50 flex flex-wrap gap-2 bg-[#050505]">`;
                     Array.from(tagSet).sort().forEach(tag => {
                         const isActive = currentVisualFilter === tag;
                         const displayTag = tag.replace(/^(톤|배경|인물|카피|카메라):/, '');
-                        tagsHTML += `<button onclick="setVisualFilter('${tag}')" class="${isActive ? 'bg-pink-600 text-white border-pink-500 shadow-[0_0_10px_rgba(236,72,153,0.4)]' : 'bg-black text-gray-400 hover:text-white border-gray-700'} px-4 py-2 rounded-full text-[11px] font-bold transition border">#${displayTag}</button>`;
+                        tagsHTML += `<button onclick="setVisualFilter('${tag}')" class="${isActive ? 'bg-cyan-600 text-white border-cyan-500' : 'bg-[#111] text-gray-400 hover:text-white border-gray-800'} px-4 py-2 rounded-full text-[11px] font-bold transition border shadow-sm">#${displayTag}</button>`;
                     });
                     tagsHTML += `</div></details>`;
                 }
@@ -1032,22 +942,22 @@
                 const displayTags = (item.tags||[]).map(t => `#${t.split(':')[1] || t}`).join(' ');
                 
                 gridHTML += `
-                    <div class="render-optimize group cursor-pointer flex flex-col" onclick="window.generateImagePrompt('${item.id}', ${item.idx})">
-                        <div class="relative w-full aspect-video rounded-md overflow-hidden bg-gray-900 border border-gray-800 group-hover:border-pink-500 transition-colors shadow-lg">
+                    <div class="render-optimize group cursor-pointer flex flex-col" onclick="window.openImageViewer('${item.img}', '${item.id}', ${item.idx})">
+                        <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-[#111] border border-gray-800 group-hover:border-cyan-500 transition-colors shadow-sm">
                             <img src="${item.img}" loading="lazy" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity">
-                            <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <span class="bg-pink-600 text-white text-[11px] px-4 py-2 rounded-full font-bold shadow-lg tracking-widest flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> 프롬프트 추출</span>
+                            <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <span class="bg-cyan-600 text-white text-[11px] px-4 py-2 rounded-full font-bold shadow-lg tracking-widest font-montserrat uppercase flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> VIEW</span>
                             </div>
                         </div>
                         <div class="mt-3 flex flex-col pl-1">
-                            <span class="text-[10px] text-gray-500 font-bold mb-1 tracking-widest uppercase">${item.brand}</span>
+                            <span class="text-[10px] text-gray-500 font-bold mb-1 tracking-widest font-montserrat uppercase">${item.brand}</span>
                             <span class="text-xs font-bold text-gray-300 truncate">${displayTags}</span>
                         </div>
                     </div>
                 `;
             });
             
-            if (allImages.length > maxImages) gridHTML += `<div class="col-span-full w-full text-center py-10 text-gray-500 text-xs font-bold tracking-widest uppercase bg-[#0a0a0a] rounded-xl border border-gray-800">최대 ${maxImages}개의 이미지만 표시중입니다.</div>`;
+            if (allImages.length > maxImages) gridHTML += `<div class="col-span-full w-full text-center py-10 text-gray-500 text-xs font-bold tracking-widest uppercase font-montserrat bg-[#0a0a0a] rounded-xl border border-gray-800">Showing top ${maxImages} images</div>`;
             grid.innerHTML = gridHTML; 
         }
         document.getElementById('visual-search').addEventListener('input', debounce(renderVisualGrid, 300));
@@ -1060,20 +970,53 @@
             let gridHTML = '';
             slicedData.forEach(ad => {
                 gridHTML += `
-                    <div class="render-optimize bg-[#090909] p-8 md:p-12 rounded-2xl border border-gray-800 hover:border-cyan-500/50 transition duration-300 shadow-xl text-left">
-                        <h3 class="text-cyan-400 font-black text-lg md:text-xl mb-6 tracking-wide text-left">${ad.brand}</h3>
-                        <div class="text-left text-gray-300 font-sans text-sm md:text-base leading-loose whitespace-pre-wrap tracking-wide font-normal">${cleanCopyText(ad.manifesto_copy)}</div>
+                    <div class="render-optimize bg-[#090909] p-8 md:p-10 rounded-3xl border border-gray-800 hover:border-cyan-500/50 transition duration-300 shadow-lg text-left relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-[#111] rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
+                        <h3 class="text-cyan-400 font-montserrat font-black text-xl md:text-2xl mb-6 tracking-wide text-left relative z-10">${ad.brand}</h3>
+                        <div class="text-left text-gray-300 font-sans text-sm md:text-base leading-loose whitespace-pre-wrap tracking-wide font-medium relative z-10">${cleanCopyText(ad.manifesto_copy)}</div>
                     </div>
                 `;
             });
-            if (filtered.length > maxItems) gridHTML += `<div class="col-span-full w-full text-center py-10 text-gray-500 text-xs font-bold tracking-widest uppercase bg-[#0a0a0a] rounded-2xl border border-gray-800">최대 ${maxItems}개 표시중</div>`;
+            if (filtered.length > maxItems) gridHTML += `<div class="col-span-full w-full text-center py-10 text-gray-500 text-xs font-bold font-montserrat tracking-widest uppercase bg-[#0a0a0a] rounded-2xl border border-gray-800">Showing top ${maxItems} copies</div>`;
             grid.innerHTML = gridHTML;
         }
         document.getElementById('copy-search').addEventListener('input', debounce(renderCopyGrid, 300));
 
         // ==========================================
-        // 6. AI Studio 및 프롬프트 추출 로직
+        // 6. 이미지 뷰어 (모달) & 프롬프트 추출 로직
         // ==========================================
+        
+        // 갤러리 썸네일 클릭 시, 이미지를 메인으로 크게 보여주는 뷰어 모달 열기
+        window.openImageViewer = function(imgSrc, adId, imgIdx) {
+            const modal = document.getElementById('image-viewer-modal');
+            const mainImg = document.getElementById('viewer-main-image');
+            const extractBtn = document.getElementById('viewer-extract-btn');
+            
+            mainImg.src = imgSrc;
+            
+            // 추출 버튼에 클릭 이벤트 덮어씌우기
+            extractBtn.onclick = function() {
+                closeImageViewer();
+                generateImagePrompt(adId, imgIdx);
+            };
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            // 부드러운 페이드인
+            modal.style.opacity = '0';
+            setTimeout(() => modal.style.opacity = '1', 50);
+        };
+
+        window.closeImageViewer = function() {
+            const modal = document.getElementById('image-viewer-modal');
+            modal.style.opacity = '0';
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                document.getElementById('viewer-main-image').src = '';
+            }, 300);
+        };
+
         window.generateImagePrompt = async function(adId, imgIdx) {
             const ad = archiveData.find(a => a.id === adId);
             if (!ad || !ad.images || !ad.images[imgIdx]) return;
@@ -1116,7 +1059,7 @@
 
         window.copyPromptKo = function(e) {
             const fullPrompt = document.getElementById('prompt-full-ko').value;
-            if (!fullPrompt || fullPrompt.includes("생성 실패")) { e.preventDefault(); return showMsg("프롬프트가 생성되지 않았습니다."); }
+            if (!fullPrompt || fullPrompt.includes("에러")) { e.preventDefault(); return showMsg("프롬프트가 생성되지 않았습니다."); }
             fallbackCopyTextToClipboard(fullPrompt);
             showMsg("✨ 한국어 프롬프트 복사 완료!");
         };
@@ -1144,11 +1087,10 @@
                     if(ad && ad.images && ad.images.length > 0) {
                         ad.images.slice(0, 2).forEach((imgUrl, imgIdx) => {
                             moodboardHtml += `
-                                <div class="relative w-full aspect-video rounded-lg overflow-hidden border border-gray-800 shadow-md group cursor-pointer" onclick="window.generateImagePrompt('${ad.id}', ${imgIdx})">
-                                    <img src="${imgUrl}" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity">
-                                    <div class="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end">
-                                        <p class="text-[10px] text-gray-300 truncate tracking-widest uppercase">${ad.brand}</p>
-                                        <p class="text-xs text-white font-bold truncate">${ad.summary || ad.brand + ' 캠페인'}</p>
+                                <div class="relative w-full aspect-video rounded-xl overflow-hidden border border-gray-800 shadow-md group cursor-pointer hover:border-cyan-500 transition-colors" onclick="window.generateImagePrompt('${ad.id}', ${imgIdx})">
+                                    <img src="${imgUrl}" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity">
+                                    <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end">
+                                        <p class="text-[10px] text-gray-400 font-montserrat font-bold truncate tracking-widest uppercase">${ad.brand}</p>
                                     </div>
                                 </div>
                             `;
@@ -1178,18 +1120,16 @@
                 let list = parseAIJSON(resTextRaw);
                 if (!Array.isArray(list)) list = [list];
                 
-                let copyHtml = '<p class="text-xs text-gray-500 mb-2 font-bold tracking-widest uppercase">✨ Select to adapt for your brand</p>';
+                let copyHtml = '';
                 list.forEach((rec, index) => {
                     const line = rec.line;
                     copyHtml += `
-                        <div class="bg-black p-5 rounded-xl border border-gray-800 hover:border-purple-500/50 transition-colors shadow-lg">
-                            <div class="cursor-pointer flex flex-col group" onclick="document.getElementById('adapt-box-${index}').classList.toggle('hidden')">
-                                <div class="flex justify-between items-start mb-2">
-                                    <span class="bg-purple-900/40 text-purple-400 border border-purple-800/50 px-2 py-0.5 rounded-md text-[9px] font-bold tracking-widest uppercase">${rec.brand}</span>
-                                </div>
-                                <p class="text-gray-200 font-medium leading-relaxed group-hover:text-white transition-colors">"${line}"</p>
-                                <p class="text-gray-500 text-[10px] mt-2 line-clamp-1">${rec.reason}</p>
+                        <div class="bg-[#111] p-6 rounded-2xl border border-gray-800 hover:border-purple-500/50 transition-colors shadow-sm">
+                            <div class="flex justify-between items-start mb-3">
+                                <span class="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-[9px] font-bold font-montserrat tracking-widest uppercase">${rec.brand}</span>
                             </div>
+                            <p class="text-white font-bold text-base leading-relaxed">"${line}"</p>
+                            <p class="text-gray-500 text-[11px] mt-3 line-clamp-2">${rec.reason}</p>
                         </div>
                     `;
                 });
@@ -1200,7 +1140,7 @@
         });
 
         // ============================================================================
-        // 7. 배너 목업 스튜디오 (Canvas API)
+        // 7. 배너 목업 스튜디오 (Canvas API - 다크 테마 기반 복구)
         // ============================================================================
         window.mockupState = { text: '', imgSrc: null, ratio: '1:1', color: 'light', align: 'left', pos: 'bottom', fontSize: 64 };
 
@@ -1210,7 +1150,7 @@
             modal.classList.remove('hidden'); modal.classList.add('flex');
             const moodboardImgs = document.getElementById('moodboard-container') ? document.getElementById('moodboard-container').querySelectorAll('img') : [];
             const thumbContainer = document.getElementById('mockup-thumbnails');
-            let thumbsHtml = `<div onclick="window.setMockupImage(null)" class="w-16 h-16 bg-gray-900 rounded-lg border-2 ${!window.mockupState.imgSrc ? 'border-cyan-500' : 'border-gray-800'} cursor-pointer mockup-thumb flex items-center justify-center text-gray-500 text-xs transition-colors">기본</div>`;
+            let thumbsHtml = `<div onclick="window.setMockupImage(null)" class="w-16 h-16 bg-[#111] rounded-lg border-2 ${!window.mockupState.imgSrc ? 'border-cyan-500' : 'border-gray-800'} cursor-pointer mockup-thumb flex items-center justify-center text-gray-500 text-xs transition-colors hover:border-cyan-400">기본</div>`;
             if(moodboardImgs.length > 0) {
                 window.mockupState.imgSrc = moodboardImgs[0].src;
                 moodboardImgs.forEach((img, idx) => { thumbsHtml += `<img src="${img.src}" onclick="window.setMockupImage('${img.src}')" class="w-16 h-16 object-cover rounded-lg border-2 ${idx === 0 ? 'border-cyan-500' : 'border-gray-800'} cursor-pointer hover:border-cyan-400 transition-colors mockup-thumb">`; });
@@ -1244,9 +1184,9 @@
         window.updateMockupState = function(key, value) {
             window.mockupState[key] = value;
             if(['ratio', 'color', 'align', 'pos'].includes(key)) {
-                document.querySelectorAll(`.mk-btn-${key}`).forEach(btn => { btn.classList.replace('bg-cyan-600', 'bg-[#111]'); btn.classList.replace('text-white', 'text-gray-400'); });
+                document.querySelectorAll(`.mk-btn-${key}`).forEach(btn => { btn.classList.replace('bg-cyan-600', 'bg-[#111]'); btn.classList.replace('text-white', 'text-gray-400'); btn.classList.add('border', 'border-gray-800'); });
                 const activeBtn = document.getElementById(`mk-btn-${key}-${value.replace(':','')}`);
-                if(activeBtn) { activeBtn.classList.replace('bg-[#111]', 'bg-cyan-600'); activeBtn.classList.replace('text-gray-400', 'text-white'); }
+                if(activeBtn) { activeBtn.classList.replace('bg-[#111]', 'bg-cyan-600'); activeBtn.classList.replace('text-gray-400', 'text-white'); activeBtn.classList.remove('border-gray-800'); }
             }
             window.renderMockupCanvas();
         };
@@ -1301,251 +1241,114 @@
         };
         
         // ==========================================
-        // 8. 피자 마스터 채팅 & 스파이시 갤러리 로직
+        // 8. AI 챗 (화이트닝 테마 유지 및 롤링 갤러리 구현)
         // ==========================================
-        const pizzaInput = document.getElementById('pizza-chat-input');
-        const pizzaAvatar = document.getElementById('pizza-avatar');
-        const pizzaChatBox = document.getElementById('pizza-chat-box');
-        let typeTimeout;
+        const aiChatInput = document.getElementById('ai-chat-input');
+        const aiChatBox = document.getElementById('ai-chat-box');
 
-        if (pizzaInput && pizzaAvatar) {
-            pizzaInput.addEventListener('input', () => {
-                if(!pizzaAvatar.classList.contains('pizza-talk')) {
-                    pizzaAvatar.classList.remove('pizza-idle');
-                    pizzaAvatar.classList.add('pizza-type');
-                }
-                clearTimeout(typeTimeout);
-                typeTimeout = setTimeout(() => {
-                    pizzaAvatar.classList.remove('pizza-type');
-                    pizzaAvatar.classList.add('pizza-idle');
-                }, 300);
-            });
-
-            pizzaInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') submitPizzaChat();
+        if (aiChatInput) {
+            aiChatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') submitAIChat();
             });
         }
 
-        window.submitPizzaChat = function() {
-            const text = pizzaInput.value.trim();
+        window.submitAIChat = function() {
+            const text = aiChatInput.value.trim();
             if (!text) return;
 
-            pizzaChatBox.innerHTML += `
-                <div class="flex justify-end mt-2">
-                    <div class="bg-black text-white px-5 py-3 rounded-2xl rounded-tr-sm text-sm max-w-[85%] font-medium shadow-sm">
+            // 유저 챗 버블 (블랙)
+            aiChatBox.innerHTML += `
+                <div class="flex justify-end mt-4">
+                    <div class="bg-black text-white px-6 py-4 rounded-3xl rounded-tr-sm text-sm max-w-[85%] font-medium shadow-md">
                         ${text}
                     </div>
                 </div>
             `;
-            pizzaInput.value = '';
-            pizzaChatBox.scrollTop = pizzaChatBox.scrollHeight;
-
-            pizzaAvatar.classList.remove('pizza-idle', 'pizza-type', 'pizza-talk');
-            void pizzaAvatar.offsetWidth; 
-            pizzaAvatar.classList.add('pizza-type');
+            aiChatInput.value = '';
+            aiChatBox.scrollTop = aiChatBox.scrollHeight;
 
             setTimeout(() => {
                 const keywords = ["레퍼런스", "추천", "찾아", "비주얼", "이미지", "자료"];
                 const isReferenceQuery = keywords.some(k => text.includes(k));
 
                 if (isReferenceQuery) {
-                    pizzaChatBox.innerHTML += `
-                        <div class="flex justify-start mt-2 w-full">
-                            <div class="bg-white text-black border border-gray-200 px-5 py-8 rounded-3xl rounded-tl-sm text-sm max-w-[85%] shadow-sm w-full text-center relative overflow-visible">
-                                <div class="mb-8 font-bold text-gray-800 text-base">아주 핫한 자료들이 가득한 비밀 폴더를 꺼낼게! 🌶️<br>아래 폴더를 클릭해봐!</div>
-                                
-                                <!-- 스파이시 폴더 UI -->
-                                <div id="spicy-folder-container" class="inline-block relative cursor-pointer hover:scale-110 transition-transform duration-300" onclick="window.triggerSpicyFolder(this)">
-                                    <svg class="w-10 h-10 text-gray-400 absolute -top-12 left-1/2 -translate-x-1/2" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4l12 6-12 6z"/></svg>
-                                    <div class="w-24 h-16 bg-[#4CA1FE] rounded-lg relative flex items-center justify-center mx-auto shadow-[0_10px_30px_rgba(76,161,254,0.3)] z-20 border-b-4 border-blue-600">
-                                        <div class="absolute -top-3 left-0 w-10 h-4 bg-[#4CA1FE] rounded-t-md"></div>
-                                    </div>
-                                    <div class="mt-4 text-black font-montserrat font-black text-sm tracking-widest uppercase">The spicy folder</div>
-                                </div>
+                    aiChatBox.innerHTML += `
+                        <div class="flex justify-start mt-4">
+                            <div class="bg-gray-100 text-black border border-gray-200 px-6 py-4 rounded-3xl rounded-tl-sm text-sm max-w-[85%] font-medium shadow-sm">
+                                네, 아카이브에서 선별된 프리미엄 레퍼런스들을 아래에 준비했습니다.<br>마우스를 스크롤해서 확인하시고, 클릭하면 대화면으로 확대합니다.
                             </div>
                         </div>
                     `;
+                    showRollingGallery();
                 } else {
                     const responses = [
-                        "치즈가 쭈욱 늘어나듯 멋진 질문이야! 🍕",
-                        "도우처럼 마음이 부풀어오르는 아이디어네!",
-                        "오! 그건 마치 파인애플 피자 같은 신선한 발상인데?",
-                        "냠냠.. 쩝쩝.. 너무 맛있는 대화야!",
-                        "레퍼런스가 필요하다면 '레퍼런스 추천해줘' 라고 말해봐!"
+                        "흥미로운 의견이네요! 조금 더 구체적으로 말씀해 주실 수 있나요?",
+                        "좋은 방향입니다. 그 컨셉에 맞는 레퍼런스를 검색해 볼까요?",
+                        "이해했습니다. 관련된 크리에이티브 에셋을 찾으려면 '레퍼런스 보여줘'라고 입력해 보세요."
                     ];
                     const reply = responses[Math.floor(Math.random() * responses.length)];
 
-                    pizzaChatBox.innerHTML += `
-                        <div class="flex justify-start mt-2">
-                            <div class="bg-white text-black border border-gray-200 px-5 py-3 rounded-2xl rounded-tl-sm text-sm max-w-[85%] shadow-sm font-medium">
+                    aiChatBox.innerHTML += `
+                        <div class="flex justify-start mt-4">
+                            <div class="bg-gray-100 text-black border border-gray-200 px-6 py-4 rounded-3xl rounded-tl-sm text-sm max-w-[85%] shadow-sm font-medium">
                                 ${reply}
                             </div>
                         </div>
                     `;
                 }
 
-                pizzaChatBox.scrollTop = pizzaChatBox.scrollHeight;
-
-                pizzaAvatar.classList.remove('pizza-type');
-                pizzaAvatar.classList.add('pizza-talk');
-                triggerTearEffect();
-
-                setTimeout(() => {
-                    pizzaAvatar.classList.remove('pizza-talk');
-                    pizzaAvatar.classList.add('pizza-idle');
-                }, 1500); 
-                
-            }, 800); 
+                aiChatBox.scrollTop = aiChatBox.scrollHeight;
+            }, 600); 
         };
 
-        // 🌶️ 스크린 확장 및 세로 스택형 갤러리 로직
-        window.triggerSpicyFolder = function(folderContainer) {
-            if (folderContainer.dataset.opened === 'true') return;
-            folderContainer.dataset.opened = 'true';
-
-            const aiScreen = document.getElementById('ai-screen-area');
-            const pizzaWrapper = document.getElementById('pizza-wrapper');
+        // 📚 겹겹이 롤링되며 쌓이는 CSS 스크롤링 갤러리 로직
+        window.showRollingGallery = function() {
+            const galleryArea = document.getElementById('rolling-gallery-area');
+            const stackScroll = document.getElementById('stack-scroll-container');
             const chatWindow = document.getElementById('chat-window-area');
-            const verticalGallery = document.getElementById('vertical-gallery');
 
-            // 1. 그라데이션 빛 기둥을 상단 스크린에 발사!
-            const beam = document.createElement('div');
-            beam.className = 'absolute bottom-0 left-1/2 w-full h-full z-10 pointer-events-none transform -translate-x-1/2';
-            beam.style.background = 'linear-gradient(to top, rgba(255,105,180,0.8) 0%, rgba(255,215,0,0.6) 40%, rgba(139,92,246,0.3) 70%, transparent 100%)';
-            beam.style.clipPath = 'polygon(30% 100%, 70% 100%, 100% 0, 0 0)';
-            beam.style.animation = 'beam-up 1.5s ease-out forwards';
-            aiScreen.appendChild(beam);
-
-            // 2. 이모지 폭발 효과 (복숭아, 가지, 체리)
-            const emojis = ['🍑', '🍆', '🍒'];
-            for(let i=0; i<40; i++) {
-                setTimeout(() => {
-                    const p = document.createElement('div');
-                    p.className = 'absolute text-5xl z-20 pointer-events-none drop-shadow-2xl';
-                    p.innerText = emojis[Math.floor(Math.random() * emojis.length)];
-                    const tx = (Math.random() - 0.5) * 800 + 'px';
-                    const ty = -(Math.random() * 600 + 100) + 'px';
-                    const rot = (Math.random() - 0.5) * 360 + 'deg';
-                    p.style.setProperty('--tx', tx); p.style.setProperty('--ty', ty); p.style.setProperty('--rot', rot);
-                    p.style.left = '50%'; p.style.bottom = '0px';
-                    p.style.animation = `shoot-up ${0.6 + Math.random()*0.5}s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards`;
-                    aiScreen.appendChild(p);
-                    setTimeout(() => p.remove(), 1500);
-                }, i * 30);
-            }
-
-            // 3. 1.2초 뒤 피자와 대화창이 사라지고, 거대한 세로 스택 갤러리가 펼쳐짐!
-            setTimeout(() => {
-                // 피자 숨기기
-                pizzaWrapper.style.opacity = '0';
-                pizzaWrapper.style.pointerEvents = 'none';
-
-                // 대화창 아래로 접어 숨기기
-                chatWindow.style.opacity = '0';
-                chatWindow.style.height = '0';
-                chatWindow.style.marginTop = '0';
-                chatWindow.style.padding = '0';
-                chatWindow.style.overflow = 'hidden';
-
-                // 상단 스크린(블랙 박스)을 거대하게 세로로 확장
-                aiScreen.classList.remove('min-h-[400px]');
-                aiScreen.classList.add('h-[80vh]'); 
-
-                let allImages = [];
-                archiveData.forEach(ad => { (ad.images || []).forEach((img, idx) => { allImages.push({ id: ad.id, brand: ad.brand, img: img, idx: idx }); }); });
-                allImages = allImages.sort(() => 0.5 - Math.random()).slice(0, 15);
-                
-                const stackScroll = document.getElementById('stack-scroll-container');
-                
-                if (allImages.length === 0) {
-                    stackScroll.innerHTML = '<div class="text-white font-montserrat mt-20">NO VISUALS IN ARCHIVE</div>';
-                } else {
-                    let galleryHtml = '';
-                    allImages.forEach((item, i) => {
-                        // z-index를 i로 주어 아래쪽으로 갈수록 위로 덮어씌워지게 세팅 (Cascading)
-                        galleryHtml += `
-                            <div class="vertical-stack-card" style="z-index: ${i};" onclick="window.generateImagePrompt('${item.id}', ${item.idx})">
-                                <img src="${item.img}" class="w-full h-full object-cover">
-                                <div class="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white text-sm font-montserrat tracking-widest font-bold backdrop-blur-sm">
-                                    EXTRACT PROMPT
-                                </div>
+            // 대화창 축소 (위로 올라감)
+            chatWindow.classList.replace('h-[600px]', 'h-[300px]');
+            
+            let allImages = [];
+            archiveData.forEach(ad => { (ad.images || []).forEach((img, idx) => { allImages.push({ id: ad.id, brand: ad.brand, img: img, idx: idx }); }); });
+            allImages = allImages.sort(() => 0.5 - Math.random()).slice(0, 15);
+            
+            if (allImages.length === 0) {
+                stackScroll.innerHTML = '<div class="text-black font-montserrat font-bold text-center mt-20 text-xl">NO VISUALS IN ARCHIVE</div>';
+            } else {
+                let galleryHtml = '';
+                allImages.forEach((item, i) => {
+                    galleryHtml += `
+                        <div class="stack-card" style="--i: ${i};" onclick="window.openImageViewer('${item.img}', '${item.id}', ${item.idx})">
+                            <img src="${item.img}" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <span class="text-white font-montserrat font-bold tracking-widest uppercase border border-white px-6 py-3 rounded-full backdrop-blur-sm">CLICK TO VIEW</span>
                             </div>
-                        `;
-                    });
-                    stackScroll.innerHTML = galleryHtml;
-                }
+                        </div>
+                    `;
+                });
+                stackScroll.innerHTML = galleryHtml;
+            }
 
-                // 갤러리 페이드인 표시
-                verticalGallery.classList.remove('hidden');
-                setTimeout(() => {
-                    verticalGallery.style.opacity = '1';
-                }, 50);
-
-            }, 1200);
-        };
-
-        // 닫기 버튼을 눌렀을 때 원래 채팅 화면으로 돌아오는 함수
-        window.closeSpicyFolder = function() {
-            const aiScreen = document.getElementById('ai-screen-area');
-            const pizzaWrapper = document.getElementById('pizza-wrapper');
-            const chatWindow = document.getElementById('chat-window-area');
-            const verticalGallery = document.getElementById('vertical-gallery');
-
-            // 갤러리 숨기기
-            verticalGallery.style.opacity = '0';
+            galleryArea.classList.remove('hidden');
+            galleryArea.classList.add('flex');
+            
             setTimeout(() => {
-                verticalGallery.classList.add('hidden');
-
-                // 스크린 다시 줄이기
-                aiScreen.classList.remove('h-[80vh]');
-                aiScreen.classList.add('min-h-[400px]');
-
-                // 대화창 복구
-                chatWindow.style.opacity = '1';
-                chatWindow.style.height = 'auto';
-                chatWindow.style.marginTop = '2rem';
-                chatWindow.style.padding = '1.5rem';
-                setTimeout(() => chatWindow.style.overflow = 'visible', 700);
-
-                // 피자 복구
-                pizzaWrapper.style.opacity = '1';
-                pizzaWrapper.style.pointerEvents = 'auto';
-
-                // 폴더 클릭 상태 리셋 (다시 클릭 가능하도록)
-                const folders = document.querySelectorAll('[data-opened="true"]');
-                folders.forEach(f => f.dataset.opened = 'false');
-
-            }, 500);
+                galleryArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
         };
 
-        window.triggerTearEffect = function() {
-            const turb = document.getElementById('svg-turb');
-            const disp = document.getElementById('svg-disp');
-            const wrapper = document.getElementById('pizza-wrapper');
-            
-            let startTime = Date.now();
-            const duration = 1500; 
-            
-            wrapper.style.filter = "url(#tear-filter)";
+        // 갤러리 닫기 기능
+        window.closeRollingGallery = function() {
+            const galleryArea = document.getElementById('rolling-gallery-area');
+            const chatWindow = document.getElementById('chat-window-area');
 
-            function step() {
-                let elapsed = Date.now() - startTime;
-                if (elapsed > duration) { disp.setAttribute('scale', '0'); wrapper.style.filter = "none"; return; }
-                let progress = elapsed / duration; let intensity = Math.sin(progress * Math.PI); 
-                if (Math.random() > 0.7) intensity *= 1.5;
-                disp.setAttribute('scale', String(intensity * 150)); 
-                turb.setAttribute('baseFrequency', `${0.01 + (intensity * 0.05)} ${0.1 + (intensity * 0.2)}`);
-                requestAnimationFrame(step);
-            }
-            requestAnimationFrame(step);
-        };
-
-        window.loadAvatarImage = function(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) { document.getElementById('pizza-avatar').src = e.target.result; };
-                reader.readAsDataURL(input.files[0]);
-            }
+            galleryArea.classList.add('hidden');
+            galleryArea.classList.remove('flex');
+            
+            chatWindow.classList.replace('h-[300px]', 'h-[600px]');
+            chatWindow.scrollIntoView({ behavior: 'smooth', block: 'end' });
         };
     </script>
 </body>
