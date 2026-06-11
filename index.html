@@ -40,31 +40,6 @@
         
         .render-optimize { content-visibility: auto; contain-intrinsic-size: 1px 400px; }
 
-        /* 📚 롤링 가능한 스택형 갤러리 애니메이션 */
-        .stack-container {
-            width: 100%; max-width: 800px; margin: 0 auto;
-            padding-bottom: 50vh; 
-            position: relative;
-        }
-        .stack-card {
-            position: sticky;
-            top: calc(80px + var(--i) * 20px); 
-            width: 100%;
-            aspect-ratio: 16/9;
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 -10px 30px rgba(0,0,0,0.1), 0 20px 40px rgba(0,0,0,0.15);
-            margin-bottom: 40px;
-            cursor: pointer;
-            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.3s;
-            background: #fff;
-            border: 1px solid rgba(0,0,0,0.05);
-            transform-origin: top center;
-        }
-        .stack-card:hover {
-            transform: translateY(-20px) scale(1.02);
-        }
-        
         /* 모달 & 리스트 등장 애니메이션 */
         .fade-in-up { animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes fadeInUp {
@@ -258,15 +233,17 @@
                     </div>
                 </div>
 
-                <!-- 📚 스크롤링 스택 갤러리 영역 -->
-                <div id="rolling-gallery-area" class="hidden w-full mt-12 flex-col items-center">
+                <!-- 📚 한눈에 보는 랭킹 무드보드 영역 -->
+                <div id="ranked-moodboard-area" class="hidden w-full mt-12 flex-col items-center fade-in-up">
                     <div class="w-full flex justify-between items-end mb-8 border-b border-gray-200 pb-4">
-                        <h3 class="text-3xl font-montserrat text-black uppercase tracking-tight">Curated References</h3>
-                        <button onclick="closeRollingGallery()" class="text-sm font-bold text-gray-500 hover:text-black transition-colors flex items-center gap-1 bg-white border border-gray-200 px-4 py-2 rounded-full shadow-sm">
+                        <h3 class="text-3xl font-montserrat text-black uppercase tracking-tight">Ranked Moodboard</h3>
+                        <button onclick="closeRankedMoodboard()" class="text-sm font-bold text-gray-500 hover:text-black transition-colors flex items-center gap-1 bg-white border border-gray-200 px-4 py-2 rounded-full shadow-sm">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg> 닫기
                         </button>
                     </div>
-                    <div id="stack-scroll-container" class="stack-container">
+                    
+                    <!-- 1위부터 10위까지 한 번에 펼쳐지는 그리드 컨테이너 -->
+                    <div id="moodboard-grid-container" class="grid grid-cols-2 md:grid-cols-5 gap-4 w-full">
                         <!-- JS에서 카드가 주입됩니다 -->
                     </div>
                 </div>
@@ -1289,23 +1266,23 @@
                     throw new Error("아카이브에 저장된 데이터가 없습니다. 먼저 WORK 탭에서 PPT를 올려주세요.");
                 }
 
-                // AI에게 분석을 맡기기 위해 아카이브 내용을 압축해서 준비
-                const safeArchive = archiveData.slice(0, 40).map(a => ({
-                    id: a.id, brand: a.brand, summary: a.summary, tags: a.visual_tags, copy: (a.manifesto_copy || '').substring(0, 150)
+                // AI가 카피를 더 잘 찾을 수 있도록 원문을 충분히(400자) 제공하고 샘플링 양을 늘림
+                const safeArchive = archiveData.slice(0, 50).map(a => ({
+                    id: a.id, brand: a.brand, summary: a.summary, tags: a.visual_tags, copy: (a.manifesto_copy || '').substring(0, 400)
                 }));
                 
                 const prompt = `사용자 입력: "${text}"
 아카이브 데이터: ${JSON.stringify(safeArchive)}
 
-당신은 크리에이티브 어시스턴트입니다. 사용자의 입력을 분석하여 다음 3가지 행동 중 하나를 선택해 순수 JSON 형식으로 응답하세요. (마크다운 포맷 \`\`\`json 도 절대 사용하지 말고 오직 중괄호로 시작하는 텍스트만 출력하세요)
+당신은 탑 티어 크리에이티브 디렉터입니다. 사용자의 입력을 분석하여 다음 3가지 행동 중 하나를 선택해 순수 JSON 형식으로 응답하세요. (마크다운 포맷 \`\`\`json 도 절대 사용하지 말고 오직 중괄호로 시작하는 텍스트만 출력하세요)
 
 1. 비주얼(레퍼런스/이미지/사진/영상) 추천이 필요한 경우:
-{"action": "visual", "message": "채팅창에 출력할 안내 메시지 (예: 요청하신 분위기에 맞는 레퍼런스를 아카이브에서 찾았어요. 확인해보세요!)", "recommended_ids": ["id1", "id2", ...최대 15개]}
-(주제, 태그, 컨셉이 사용자의 입력과 가장 잘 맞는 캠페인 id를 아카이브에서 고르세요)
+{"action": "visual", "message": "채팅창에 출력할 안내 메시지 (예: 요청하신 분위기에 맞는 레퍼런스를 랭킹 순으로 정리해봤어요!)", "ranked_visuals": [{"id": "캠페인id", "rank": 1, "reason": "이 이미지를 이 순위로 추천하는 구체적인 이유"}, ...최대 10개]}
+(주제와 가장 잘 맞는 이미지를 1위부터 10위까지 엄격히 평가하고 선정하여 순위대로 배열하세요.)
 
 2. 카피(문구/글귀/텍스트) 추천이 필요한 경우:
-{"action": "copy", "message": "채팅창에 출력할 안내 메시지", "copy_list": [{"brand": "브랜드명", "copy": "추천하는 아카이브의 1~2줄짜리 카피 원문"}, ...최대 6개]}
-(사용자의 기분, 상황, 주제에 가장 잘 맞는 아카이브 카피의 일부를 발췌하세요)
+{"action": "copy", "message": "채팅창에 출력할 안내 메시지", "copy_list": [{"brand": "브랜드명", "copy": "아카이브에서 발췌한 핵심 1~2줄 카피"}, ...최대 10개]}
+(사용자의 기분, 상황, 감성, 주제에 완벽히 부합하는 문장을 아카이브 데이터의 'copy' 항목에서 찾아 가장 임팩트 있는 1~2줄로 발췌하세요. 절대 없는 문장을 새로 지어내지 마세요. 가급적 10개 꽉 채워서 풍성하게 추천해주세요.)
 
 3. 단순 대화나 질문인 경우:
 {"action": "chat", "message": "사용자에게 자연스럽게 대답하는 메시지"}`;
@@ -1327,20 +1304,23 @@
                 `;
 
                 // 액션에 따른 UI 렌더링
-                if (parsed.action === 'visual' && parsed.recommended_ids && parsed.recommended_ids.length > 0) {
-                    showRollingGalleryByAI(parsed.recommended_ids);
+                if (parsed.action === 'visual' && parsed.ranked_visuals && parsed.ranked_visuals.length > 0) {
+                    showRankedMoodboardByAI(parsed.ranked_visuals);
                 } 
                 else if (parsed.action === 'copy' && parsed.copy_list && parsed.copy_list.length > 0) {
-                    // 카피 추천 리스트 UI 생성
-                    let copyHtml = `<div class="flex justify-start mt-2 w-full"><div class="px-4 py-2 w-full max-w-[85%]">`;
-                    copyHtml += `<div class="flex items-center gap-2 mb-4 text-gray-500 font-bold text-xs"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg> ${text}</div>`;
-                    copyHtml += `<div class="space-y-4 border-l-2 border-gray-200 pl-4">`;
+                    // 카피 추천 리스트를 세련된 화보집 텍스트 형태로 렌더링
+                    let copyHtml = `<div class="flex justify-start mt-4 w-full"><div class="bg-white border border-gray-200 p-6 rounded-3xl rounded-tl-sm w-full max-w-[85%] shadow-sm">`;
+                    copyHtml += `<div class="flex items-center gap-2 mb-6 text-black font-montserrat font-bold text-xs tracking-widest uppercase border-b border-gray-100 pb-4"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg> Curated Copies for You</div>`;
+                    copyHtml += `<div class="space-y-3">`;
                     
                     parsed.copy_list.forEach(item => {
                         copyHtml += `
-                            <div class="group cursor-pointer hover:bg-gray-50 p-3 rounded-xl transition-colors border border-transparent hover:border-gray-200" onclick="navigator.clipboard.writeText('${item.copy}'); showMsg('카피가 복사되었습니다!');">
-                                <div class="text-lg font-bold text-gray-800 leading-snug"><span class="text-gray-300 mr-1">"</span>${item.copy}<span class="text-gray-300 ml-1">"</span></div>
-                                <div class="text-[10px] text-gray-400 mt-2 uppercase tracking-widest font-montserrat font-bold">— ${item.brand}</div>
+                            <div class="group cursor-pointer bg-gray-50 hover:bg-black hover:text-white p-5 rounded-2xl transition-all duration-300 border border-transparent shadow-sm" onclick="navigator.clipboard.writeText('${item.copy.replace(/'/g, "\\'")}'); showMsg('카피가 복사되었습니다!');">
+                                <div class="text-base font-bold leading-relaxed mb-4">"${item.copy}"</div>
+                                <div class="flex justify-between items-center">
+                                    <div class="text-[10px] text-gray-500 group-hover:text-gray-400 uppercase tracking-widest font-montserrat font-bold">— ${item.brand}</div>
+                                    <div class="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 font-bold"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> COPY</div>
+                                </div>
                             </div>
                         `;
                     });
@@ -1364,39 +1344,48 @@
             aiChatBox.scrollTop = aiChatBox.scrollHeight;
         };
 
-        // 📚 지능형 AI 스크롤링 스택 갤러리 로직
-        window.showRollingGalleryByAI = function(recommendedIds) {
-            const galleryArea = document.getElementById('rolling-gallery-area');
-            const stackScroll = document.getElementById('stack-scroll-container');
+        // 📚 한눈에 10장을 확인하는 AI 랭킹 무드보드 로직
+        window.showRankedMoodboardByAI = function(rankedVisuals) {
+            const galleryArea = document.getElementById('ranked-moodboard-area');
+            const gridContainer = document.getElementById('moodboard-grid-container');
             const chatWindow = document.getElementById('chat-window-area');
-
-            // 대화창 축소 (위로 올라감)
-            chatWindow.classList.replace('h-[600px]', 'h-[300px]');
             
-            let aiImages = [];
-            recommendedIds.forEach(id => {
-                const ad = archiveData.find(a => a.id === id);
+            let html = '';
+            rankedVisuals.forEach((item) => {
+                const ad = archiveData.find(a => a.id === item.id);
                 if (ad && ad.images && ad.images.length > 0) {
-                    aiImages.push({ id: ad.id, brand: ad.brand, img: ad.images[0], idx: 0 });
-                }
-            });
-            
-            if (aiImages.length === 0) {
-                stackScroll.innerHTML = '<div class="text-black font-montserrat font-bold text-center mt-20 text-xl">NO MATCHING VISUALS</div>';
-            } else {
-                let galleryHtml = '';
-                aiImages.forEach((item, i) => {
-                    galleryHtml += `
-                        <div class="stack-card" style="--i: ${i};" onclick="window.openImageViewer('${item.img}', '${item.id}', ${item.idx})">
-                            <img src="${item.img}" class="w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <span class="text-white font-montserrat font-bold tracking-widest uppercase border border-white px-6 py-3 rounded-full backdrop-blur-sm">CLICK TO VIEW</span>
+                    // 1, 2, 3위는 특별한 컬러 뱃지 부여
+                    let badgeClass = 'bg-black text-white';
+                    if (item.rank === 1) badgeClass = 'bg-yellow-400 text-black shadow-[0_0_15px_rgba(250,204,21,0.5)]';
+                    else if (item.rank === 2) badgeClass = 'bg-gray-300 text-black shadow-[0_0_15px_rgba(209,213,219,0.5)]';
+                    else if (item.rank === 3) badgeClass = 'bg-amber-600 text-white shadow-[0_0_15px_rgba(217,119,6,0.5)]';
+                    
+                    html += `
+                        <div class="relative w-full aspect-[4/5] rounded-2xl overflow-hidden border border-gray-200 shadow-sm group cursor-pointer hover:border-black transition-all duration-300" onclick="window.openImageViewer('${ad.images[0]}', '${ad.id}', 0)">
+                            <img src="${ad.images[0]}" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-transform duration-500">
+                            
+                            <!-- 랭킹 뱃지 -->
+                            <div class="absolute top-3 left-3 ${badgeClass} w-8 h-8 rounded-full flex items-center justify-center font-montserrat font-black text-sm shadow-md z-10 border border-white/20">
+                                ${item.rank}
+                            </div>
+                            
+                            <!-- AI 평가 이유 (마우스 오버 시 표시) -->
+                            <div class="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+                                <div class="text-[10px] text-cyan-400 font-montserrat font-bold tracking-widest uppercase mb-1">${ad.brand}</div>
+                                <p class="text-white text-xs font-medium mb-3 leading-relaxed break-keep line-clamp-4">"${item.reason}"</p>
+                                <span class="bg-white text-black text-[10px] px-4 py-2 rounded-full font-bold shadow-lg tracking-widest font-montserrat uppercase inline-flex items-center justify-center gap-1 w-max">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> VIEW
+                                </span>
                             </div>
                         </div>
                     `;
-                });
-                stackScroll.innerHTML = galleryHtml;
+                }
+            });
+            
+            if (!html) {
+                html = '<div class="col-span-full text-black font-montserrat font-bold text-center mt-10 text-xl">NO MATCHING VISUALS</div>';
             }
+            gridContainer.innerHTML = html;
 
             galleryArea.classList.remove('hidden');
             galleryArea.classList.add('flex');
@@ -1407,15 +1396,13 @@
         };
 
         // 갤러리 닫기 기능
-        window.closeRollingGallery = function() {
-            const galleryArea = document.getElementById('rolling-gallery-area');
+        window.closeRankedMoodboard = function() {
+            const galleryArea = document.getElementById('ranked-moodboard-area');
             const chatWindow = document.getElementById('chat-window-area');
 
             galleryArea.classList.add('hidden');
             galleryArea.classList.remove('flex');
             
-            // 대화창 크기 복원
-            chatWindow.classList.replace('h-[300px]', 'h-[600px]');
             chatWindow.scrollIntoView({ behavior: 'smooth', block: 'end' });
         };
     </script>
