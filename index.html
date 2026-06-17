@@ -4,12 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JAEMIN STUDIO | TVCF Visual & Copy Archive</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- JSZip (PPTX 파싱용) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     
-    <!-- PDF 추출용 라이브러리 추가 -->
+    <!-- PDF 추출용 라이브러리 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- Chart.js (시장조사 그래프용) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
     <style>
@@ -17,7 +22,7 @@
         
         body { 
             font-family: 'Pretendard', sans-serif; 
-            background-color: #050505; /* 기본 다크 테마 */
+            background-color: #050505; /* 전체 기본 테마: 블랙 */
             color: #f8f9fa; 
             overflow-x: hidden;
             transition: background-color 0.5s ease;
@@ -33,18 +38,18 @@
         
         .drag-over { background-color: rgba(6, 182, 212, 0.05) !important; border-color: #06b6d4 !important; }
         
+        /* 공통 로더 애니메이션 */
         .loader {
             border: 3px solid #333; border-top: 3px solid #06b6d4;
             border-radius: 50%; width: 24px; height: 24px;
             animation: spin 1s linear infinite;
         }
-
-        /* 버튼 내부에 들어가는 소형 로더 추가 */
         .btn-loader {
             border: 2px solid rgba(255,255,255,0.3); border-top: 2px solid #fff;
             border-radius: 50%; width: 18px; height: 18px;
             animation: spin 1s linear infinite;
         }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         .render-optimize { content-visibility: auto; contain-intrinsic-size: 1px 400px; }
         .fade-in-up { animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -53,7 +58,7 @@
             100% { opacity: 1; transform: translateY(0); }
         }
 
-        /* 롤링 스택 갤러리 (AI 챗 전용) */
+        /* 롤링 스택 갤러리 (AI 챗) */
         .stack-container {
             width: 100%; max-width: 800px; margin: 0 auto;
             padding-bottom: 50vh; 
@@ -76,37 +81,82 @@
         }
         .stack-card:hover { transform: translateY(-20px) scale(1.02); }
 
-        /* A4 사이즈 에디토리얼 페이지 스타일 (다크) */
-        .a4-page-dark {
-            width: 210mm;
-            height: 297mm;
-            background-color: #050505;
-            color: #f8f9fa;
-            padding: 20mm;
-            box-sizing: border-box;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-            margin: 0 auto;
+        /* ==========================================================
+           PDF 렌더링용 브랜드 키트 페이지 스타일 (1920x1080, White Theme)
+           ========================================================== */
+        .pdf-page-container {
+            width: 1920px; /* 고해상도 고정 폭 */
+            height: 1080px; /* 고해상도 고정 높이 (16:9) */
+            background-color: #ffffff; /* 깔끔한 화이트/라이트 그레이 톤 */
+            color: #1a1a1a;
             position: relative;
             overflow: hidden;
-            border: 1px solid #1a1a1a;
+            box-sizing: border-box;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 2rem;
+            /* 에디토리얼 느낌의 패딩 */
+            padding: 80px 100px; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            /* 기본적으로 화면에서는 스케일 다운해서 보여줌 */
+            transform-origin: top left;
+            transform: scale(0.6);
         }
-        
-        .page-indicator {
+
+        /* 프린트/추출 시에는 원래 크기로 복구하기 위한 래퍼 높이 조정 */
+        #brand-kit-pages-wrapper {
+            width: 1920px;
+            /* transform: scale(0.6) 에 맞춰 부모 높이 조정 (페이지 3개 * 1080 * 0.6 + 여백) */
+            height: 2000px; 
+            position: relative;
+        }
+
+        /* 공통 헤더/푸터 라인 */
+        .pdf-header-line {
             position: absolute;
-            bottom: 15mm;
-            right: 20mm;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 10px;
-            font-weight: 700;
-            color: #00e5ff;
-            letter-spacing: 4px;
-            transform: rotate(-90deg);
-            transform-origin: right bottom;
+            top: 40px; left: 100px; right: 100px;
+            height: 2px; background-color: #1a1a1a;
+            display: flex; justify-content: space-between; align-items: flex-end;
+            padding-bottom: 5px;
         }
+        .pdf-footer-line {
+            position: absolute;
+            bottom: 40px; left: 100px; right: 100px;
+            height: 1px; background-color: #e5e7eb;
+            display: flex; justify-content: space-between; align-items: flex-start;
+            padding-top: 10px;
+        }
+        .brand-watermark {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900; font-size: 24px; color: #1a1a1a;
+            letter-spacing: -0.02em;
+        }
+
+        /* 표 스타일 (크리에이티브 브리프용) */
+        .brief-table {
+            width: 100%; border-collapse: collapse;
+            font-size: 16px; line-height: 1.6;
+        }
+        .brief-table th, .brief-table td {
+            border: 1px solid #d1d5db;
+            padding: 24px;
+            vertical-align: top;
+        }
+        .brief-table th {
+            background-color: #f3f4f6;
+            font-weight: 700; color: #111827;
+            width: 25%; text-align: left;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .brief-table td {
+            background-color: #ffffff;
+            color: #374151;
+        }
+        .brief-table .highlight-cell { background-color: #f9fafb; border-left: 4px solid #06b6d4; }
     </style>
 </head>
 <body class="antialiased selection:bg-cyan-500 selection:text-white pb-20">
 
+    <!-- Header -->
     <header class="bg-[#050505]/90 backdrop-blur-md text-white w-full sticky top-0 z-50 border-b border-gray-900 transition-colors duration-500" id="main-header">
         <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
             <h1 id="logo-text" class="text-xl font-montserrat tracking-tight cursor-pointer hover:text-cyan-400 transition-colors text-white" onclick="switchTab('extract')">
@@ -148,14 +198,14 @@
                         <input type="password" id="gemini-key-input" placeholder="AIzaSy..." class="flex-1 bg-black border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-cyan-500 transition-all">
                         <button onclick="saveGeminiKey()" class="bg-cyan-600 text-white px-5 py-3 rounded-xl text-sm font-bold hover:bg-cyan-500 transition shadow-md">SAVE</button>
                     </div>
-                    <p class="text-[10px] text-gray-500 mt-3 font-bold">API 키 등록 시 최상위 모델(Gemini 3.1 Pro)이 자동 적용됩니다.</p>
+                    <p class="text-[10px] text-gray-500 mt-3 font-bold">API 키 등록 시 최상위 모델(Gemini 3.1 Pro Preview)이 자동 적용됩니다.</p>
                 </div>
             </div>
         </div>
     </div>
 
     <main class="w-full">
-        <!-- 탭 1: WORK -->
+        <!-- 탭 1 ~ 5 유지 (생략 없이 원본 유지) -->
         <div id="tab-extract" class="block">
             <div class="w-full py-32 px-6 flex flex-col items-center justify-center text-center relative overflow-hidden bg-[#050505] min-h-[450px]">
                 <div class="relative z-10 max-w-4xl mx-auto px-4">
@@ -164,7 +214,6 @@
                     <p id="quote-author" class="text-cyan-500 font-bold tracking-[0.2em] uppercase text-xs transition-opacity duration-1000 opacity-0"></p>
                 </div>
             </div>
-
             <div class="max-w-4xl mx-auto px-6 py-12">
                 <div id="drop-zone" class="bg-[#0a0a0a] border border-gray-800 hover:border-cyan-500 rounded-3xl p-16 text-center transition-all cursor-pointer group shadow-2xl relative overflow-hidden min-h-[350px] flex flex-col items-center justify-center">
                     <div id="drop-content" class="relative z-10 transition-all duration-300 pointer-events-none group-hover:scale-95">
@@ -174,12 +223,10 @@
                     </div>
                     <input type="file" id="file-input" accept=".pptx" multiple class="hidden">
                 </div>
-
                 <div id="loading" class="hidden flex flex-col items-center justify-center py-20">
                     <div class="loader mb-4 border-gray-800 border-t-cyan-500"></div>
                     <p class="text-cyan-400 font-montserrat font-black tracking-widest uppercase text-sm" id="loading-text">Processing...</p>
                 </div>
-
                 <div id="results-container" class="hidden flex flex-col gap-8 mt-12">
                     <div class="bg-[#111] border border-gray-800 rounded-3xl p-8 flex justify-between items-center shadow-lg">
                         <div>
@@ -194,7 +241,6 @@
             </div>
         </div>
 
-        <!-- 탭 2: ARCHIVE -->
         <div id="tab-archive" class="hidden max-w-[1400px] mx-auto px-6 py-12">
             <div class="flex justify-between items-end mb-12 border-b border-gray-900 pb-6">
                 <h2 class="text-4xl md:text-6xl font-montserrat text-white tracking-tighter uppercase">Recent Archive.</h2>
@@ -203,7 +249,6 @@
             <div id="archive-grid" class="flex flex-col gap-24 snap-y snap-mandatory"></div>
         </div>
 
-        <!-- 탭 3: VISUAL -->
         <div id="tab-visual" class="hidden max-w-[1400px] mx-auto px-6 py-12">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4 border-b border-gray-900 pb-6">
                 <div>
@@ -216,7 +261,6 @@
             <div id="visual-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-x-6 gap-y-10"></div>
         </div>
 
-        <!-- 탭 4: COPY -->
         <div id="tab-copy" class="hidden max-w-7xl mx-auto px-6 py-12">
             <div class="flex justify-between items-end mb-12 border-b border-gray-900 pb-6">
                 <h2 class="text-4xl md:text-6xl font-montserrat text-white tracking-tighter uppercase">Manifesto Copy.</h2>
@@ -225,60 +269,53 @@
             <div id="copy-grid" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>
         </div>
 
-        <!-- 탭 5: AI STUDIO -->
         <div id="tab-aistudio" class="hidden max-w-[1400px] mx-auto px-6 py-12">
             <h2 class="text-4xl md:text-6xl font-montserrat text-white mb-12 text-center tracking-tighter uppercase">Creative Matcher.</h2>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                
-                <!-- 왼쪽: Find Visuals -->
                 <div class="bg-[#0a0a0a] border border-gray-800 rounded-3xl p-8 md:p-10 shadow-2xl flex flex-col h-full">
                     <h3 class="text-3xl font-montserrat text-cyan-400 mb-2 uppercase">Find Visuals</h3>
                     <p class="text-gray-400 text-sm mb-6">기획안을 입력하면 아카이브의 분위기가 맞는 무드보드를 만들어줍니다.</p>
                     <textarea id="draft-copy-input" rows="4" placeholder="작성 중인 카피나 컨셉을 자유롭게 입력하세요..." class="w-full bg-black rounded-2xl border border-gray-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-white p-5 outline-none text-sm mb-6 resize-none transition-all"></textarea>
-                    <button id="find-visual-btn" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-4 rounded-xl font-montserrat uppercase tracking-widest transition-colors mb-6 shadow-md">Generate Moodboard</button>
-                    
+                    <button id="find-visual-btn" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-4 rounded-xl font-montserrat uppercase tracking-widest transition-colors mb-6 shadow-md flex items-center justify-center">Generate Moodboard</button>
                     <div id="recommend-loading" class="hidden text-center py-10"><div class="loader mx-auto border-cyan-800 border-t-cyan-400"></div></div>
                     <div id="recommend-grid" class="flex-1 overflow-y-auto pr-2 scrollbar-thin hidden">
                         <div id="moodboard-container" class="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-6"></div>
                     </div>
                 </div>
 
-                <!-- 오른쪽: Find Copy -->
                 <div class="bg-[#0a0a0a] border border-gray-800 rounded-3xl p-8 md:p-10 shadow-2xl flex flex-col h-full relative">
                     <button onclick="window.openMockupStudio('테스트 카피입니다.\n이곳에서 배너 디자인을 완성하세요.')" class="absolute top-8 right-8 bg-[#111] hover:bg-gray-800 text-white px-5 py-2.5 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all flex items-center gap-1.5 border border-gray-700">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> 배너 목업 테스트
                     </button>
-
                     <h3 class="text-3xl font-montserrat text-purple-400 mb-2 mt-2 uppercase">Copy Co-Pilot</h3>
                     <p class="text-gray-400 text-sm mb-6">전달하고 싶은 메시지를 적어주시면 다수의 아이디어를 제안합니다.</p>
                     <textarea id="draft-visual-input" rows="4" placeholder="비주얼 느낌이나 메시지를 적어주세요..." class="w-full bg-black rounded-2xl border border-gray-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-white p-5 outline-none text-sm mb-6 resize-none transition-all"></textarea>
-                    <button id="find-copy-btn" class="w-full bg-purple-600 hover:bg-purple-500 text-white py-4 rounded-xl font-montserrat uppercase tracking-widest transition-colors mb-6 shadow-md">Generate Copy Ideas</button>
-                    
+                    <button id="find-copy-btn" class="w-full bg-purple-600 hover:bg-purple-500 text-white py-4 rounded-xl font-montserrat uppercase tracking-widest transition-colors mb-6 shadow-md flex items-center justify-center">Generate Copy Ideas</button>
                     <div id="aicopy-recommend-loading" class="hidden text-center py-10"><div class="loader mx-auto border-purple-800 border-t-purple-400"></div></div>
                     <div id="aicopy-recommend-grid" class="flex-1 overflow-y-auto pr-2 scrollbar-thin hidden flex-col gap-4"></div>
                 </div>
             </div>
         </div>
 
-        <!-- 탭 6: BRAND KIT -->
+        <!-- 탭 6: BRAND KIT (새로운 기능: 3페이지 1920x1080 에디토리얼 PDF 생성기) -->
         <div id="tab-brandkit" class="hidden max-w-[1200px] mx-auto px-6 py-12">
             <div class="text-center mb-12">
                 <h2 class="text-4xl md:text-6xl font-montserrat text-white mb-4 tracking-tighter uppercase">Brand Kit Generator</h2>
-                <p class="text-gray-400 text-sm">브랜드 로고를 넣으면 AI가 시장조사, 비주얼 보드, 카피 논리구조를 담은 <strong class="text-cyan-400">3페이지 에디토리얼 PDF</strong>를 생성합니다.</p>
+                <p class="text-gray-400 text-sm">브랜드 로고를 넣으면 AI가 시장조사 브리프, 에디토리얼 무드보드, 3가지 카피 도출 논리를 담은 <strong class="text-cyan-400">3페이지 분량의 PDF(1920x1080)</strong>를 생성합니다.</p>
             </div>
 
             <div class="bg-[#0a0a0a] border border-gray-800 rounded-3xl p-8 md:p-10 shadow-2xl flex flex-col md:flex-row gap-8 mb-12">
-                <!-- 로고 업로드 -->
+                <!-- 로고 업로드 영역 -->
                 <div class="md:w-1/3 bg-[#111] border-2 border-dashed border-gray-700 hover:border-cyan-500 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition-colors relative" onclick="document.getElementById('brand-logo-upload').click()">
                     <img id="brand-logo-preview" src="" class="hidden max-h-32 object-contain mb-4 z-10">
                     <div id="brand-logo-placeholder" class="text-center z-10">
                         <svg class="w-10 h-10 text-gray-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        <p class="text-xs font-bold text-gray-400">클릭하여 브랜드 로고 업로드</p>
+                        <p class="text-xs font-bold text-gray-400">클릭하여 로고 업로드</p>
                     </div>
                     <input type="file" id="brand-logo-upload" accept="image/*" class="hidden" onchange="previewBrandLogo(this)">
                 </div>
                 
-                <!-- 폼 입력 -->
+                <!-- 브랜드명 입력 및 생성 버튼 -->
                 <div class="md:w-2/3 flex flex-col justify-center gap-4">
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">BRAND NAME</label>
@@ -286,8 +323,9 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">BRAND KEYWORDS (선택)</label>
-                        <input type="text" id="brand-keyword-input" placeholder="예: 미니멀, 친환경, 역동적인..." class="w-full bg-black border border-gray-800 rounded-xl px-5 py-4 text-white text-sm outline-none focus:border-cyan-500 transition-all">
+                        <input type="text" id="brand-keyword-input" placeholder="예: 미니멀, 친환경, 스트릿, 하이엔드..." class="w-full bg-black border border-gray-800 rounded-xl px-5 py-4 text-white text-sm outline-none focus:border-cyan-500 transition-all">
                     </div>
+                    
                     <button id="btn-generate-brandkit" onclick="generateBrandKit()" class="mt-2 w-full bg-cyan-600 hover:bg-cyan-500 text-white py-4 rounded-xl font-montserrat font-bold tracking-widest uppercase transition-colors shadow-lg flex items-center justify-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg> <span>GENERATE 3-PAGE BRAND KIT</span>
                     </button>
@@ -297,143 +335,224 @@
             <!-- 로딩 화면 -->
             <div id="brand-kit-loading" class="hidden text-center py-20 flex-col items-center">
                 <div class="loader mb-4 border-gray-700 border-t-cyan-500 mx-auto"></div>
-                <p class="text-xs text-cyan-400 font-bold tracking-widest uppercase animate-pulse">Gemini 3.1 Pro가 에디토리얼을 기획 중입니다...</p>
+                <p class="text-xs text-cyan-400 font-bold tracking-widest uppercase animate-pulse">Gemini 3.1 Pro가 데이터를 시각화하고 기획서를 작성 중입니다...</p>
             </div>
             
-            <!-- 결과 렌더링 영역 (PDF 변환 타겟) -->
-            <div id="brand-kit-wrapper" class="hidden w-full overflow-x-auto pb-10 flex flex-col items-center gap-12">
-                <div class="w-[210mm] flex justify-between items-center mb-2">
-                    <p class="text-sm font-bold text-gray-400 tracking-widest">PREVIEW (A4 x 3 Pages)</p>
-                    <button onclick="exportBrandKitPDF(event)" class="bg-white hover:bg-gray-200 text-black px-6 py-3 rounded-full text-xs font-bold tracking-widest uppercase shadow-lg transition-colors flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> EXPORT TO PDF
+            <!-- 결과 영역 (화면에는 스케일 다운되어 보임) -->
+            <div id="brand-kit-display-area" class="hidden relative mt-8 flex flex-col items-center">
+                <!-- PDF 다운로드 버튼 -->
+                <div class="flex justify-end w-full max-w-[1920px] mb-4">
+                    <button id="btn-export-pdf" onclick="exportBrandKitPDF(event)" class="bg-white hover:bg-gray-200 text-black px-8 py-4 rounded-full text-sm font-bold tracking-widest uppercase shadow-lg transition-colors flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> EXPORT TO PDF
                     </button>
                 </div>
 
-                <!-- [PAGE 1: Data & Strategy] -->
-                <div id="brand-kit-page-1" class="a4-page-dark flex flex-col">
-                    <div class="flex justify-between items-end mb-12 border-b-2 border-gray-800 pb-6">
-                        <div>
-                            <h1 class="text-6xl font-montserrat font-black text-white tracking-tighter leading-none mb-2">RESEARCH<br><span class="text-cyan-400">&</span> DATA</h1>
-                            <p class="text-sm font-bold text-gray-500 tracking-[0.2em] uppercase mt-4" id="bk-name-1">BRAND NAME</p>
+                <!-- PDF 렌더링 타겟 래퍼 (실제 크기를 가짐) -->
+                <div id="brand-kit-pages-wrapper" class="overflow-hidden">
+                    
+                    <!-- =========================================
+                         [PAGE 1: Creative Brief (표 형식 & 그래프)]
+                         ========================================= -->
+                    <div id="pdf-page-1" class="pdf-page-container">
+                        <div class="pdf-header-line">
+                            <h2 class="font-montserrat font-black text-3xl text-gray-800">CREATIVE BRIEF</h2>
+                            <span class="font-bold text-sm text-cyan-600">PAGE 01</span>
                         </div>
-                        <img id="bk-logo-1" src="" class="h-16 w-auto object-contain object-right opacity-80">
-                    </div>
+                        
+                        <div class="flex flex-col h-full mt-16 pb-12 pt-8">
+                            <!-- 로고 & 브랜드명 -->
+                            <div class="flex items-center gap-6 mb-12">
+                                <img id="bk-p1-logo" src="" class="h-20 w-auto object-contain">
+                                <h1 id="bk-p1-name" class="font-montserrat font-black text-6xl text-gray-900 tracking-tighter uppercase">BRAND</h1>
+                            </div>
 
-                    <div class="flex-1 grid grid-cols-2 gap-10">
-                        <div class="flex flex-col gap-10 border-r border-gray-800 pr-10">
-                            <div>
-                                <h3 class="text-xs font-montserrat font-black text-cyan-400 tracking-widest uppercase mb-4 flex items-center gap-2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg> Market Insight
-                                </h3>
-                                <p id="bk-p1-insight" class="text-[13px] text-gray-300 leading-loose text-justify font-light">시장조사 내용...</p>
-                            </div>
-                            <div>
-                                <h3 class="text-xs font-montserrat font-black text-cyan-400 tracking-widest uppercase mb-4 flex items-center gap-2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg> Competitor & Strategy
-                                </h3>
-                                <p id="bk-p1-comp" class="text-[13px] text-gray-300 leading-loose text-justify font-light">경쟁사 동향 내용...</p>
-                            </div>
-                        </div>
-                        <div class="flex flex-col gap-10">
-                            <div>
-                                <h3 class="text-xs font-montserrat font-black text-cyan-400 tracking-widest uppercase mb-4 flex items-center gap-2">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg> Target Audience
-                                </h3>
-                                <p id="bk-p1-target" class="text-[13px] text-gray-300 leading-loose text-justify font-light">타겟 내용...</p>
-                            </div>
-                            <div class="mt-auto bg-[#111] border border-gray-800 p-6 rounded-xl">
-                                <h3 class="text-[10px] font-montserrat font-bold text-gray-500 tracking-widest uppercase mb-4">Core Keywords</h3>
-                                <div id="bk-p1-tags" class="flex flex-wrap gap-2"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="page-indicator">PAGE 01</div>
-                </div>
+                            <!-- 브리프 폼 (표) -->
+                            <table class="brief-table w-full mb-12 shadow-sm rounded-lg overflow-hidden">
+                                <tbody>
+                                    <tr>
+                                        <th>시장 상황 및<br>트렌드 분석</th>
+                                        <td class="highlight-cell" id="bk-p1-market">
+                                            전반적인 시장 트렌드 내용이 들어갑니다.
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>타겟 인사이트<br>(Target Insight)</th>
+                                        <td id="bk-p1-target">타겟 분석 내용이 들어갑니다.</td>
+                                    </tr>
+                                    <tr>
+                                        <th>광고 목표 및<br>포지셔닝</th>
+                                        <td id="bk-p1-goal">광고 목표 내용이 들어갑니다.</td>
+                                    </tr>
+                                    <tr>
+                                        <th>크리에이티브 컨셉<br>(Reason-why)</th>
+                                        <td id="bk-p1-concept" class="font-bold text-gray-900 bg-gray-50 border-left-none">컨셉 및 이유가 들어갑니다.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
 
-                <!-- [PAGE 2: Visual Moodboard] -->
-                <div id="brand-kit-page-2" class="a4-page-dark flex flex-col">
-                    <div class="flex justify-between items-center mb-8">
-                        <div>
-                            <h1 class="text-6xl font-montserrat font-black text-white tracking-tighter leading-none mb-1">VISUAL<br><span class="text-cyan-400">BOARD</span></h1>
-                            <p class="text-sm font-bold text-gray-400 tracking-widest uppercase mt-3" id="bk-p2-theme">THEME: UNKNOWN</p>
-                        </div>
-                        <img id="bk-logo-2" src="" class="h-12 w-auto object-contain opacity-50">
-                    </div>
-
-                    <div class="flex-1 flex flex-col gap-6">
-                        <!-- Pinterest style collage -->
-                        <div id="bk-p2-collage" class="flex-1 grid grid-cols-12 grid-rows-2 gap-3 h-[450px]">
-                            <!-- Images injected here -->
-                        </div>
-
-                        <div class="grid grid-cols-3 gap-6 h-[180px]">
-                            <div class="col-span-1 bg-[#111] border border-gray-800 p-5 flex flex-col justify-center">
-                                <h3 class="text-[10px] font-montserrat font-black text-gray-500 tracking-widest uppercase mb-3">Vibe & Tone</h3>
-                                <p id="bk-p2-desc" class="text-xs text-gray-300 leading-relaxed font-light">비주얼 무드 설명...</p>
-                            </div>
-                            <div class="col-span-1 bg-[#111] border border-gray-800 p-5 flex flex-col justify-center">
-                                <h3 class="text-[10px] font-montserrat font-black text-gray-500 tracking-widest uppercase mb-3">Color System</h3>
-                                <div id="bk-p2-colors" class="flex gap-2 h-12"></div>
-                            </div>
-                            <div class="col-span-1 bg-[#111] border border-gray-800 p-5 flex flex-col justify-center">
-                                <h3 class="text-[10px] font-montserrat font-black text-gray-500 tracking-widest uppercase mb-2">Typography</h3>
-                                <h4 id="bk-p2-font" class="text-lg font-black text-white truncate mb-1">Font Name</h4>
-                                <p class="text-xl text-gray-400 font-serif overflow-hidden whitespace-nowrap">Aa Bb 가 나 다</p>
+                            <!-- 시장 조사 시각화 (Chart) -->
+                            <div class="flex-1 flex gap-8">
+                                <div class="w-1/2 flex flex-col bg-gray-50 p-6 rounded-xl border border-gray-200">
+                                    <h4 class="text-sm font-bold text-gray-700 mb-4 uppercase tracking-widest">Market Trend Graph</h4>
+                                    <div class="flex-1 relative w-full h-full">
+                                        <canvas id="marketChart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="w-1/2 flex flex-col justify-end gap-3 pb-2">
+                                    <h4 class="text-sm font-bold text-gray-700 border-b border-gray-300 pb-2 uppercase tracking-widest">Data Sources</h4>
+                                    <!-- 출처 동적 생성 영역 -->
+                                    <ul id="bk-p1-sources" class="text-xs text-gray-400 space-y-2 list-disc pl-4">
+                                        <!-- ex) <li><a href="#" class="hover:text-cyan-500">2026 국내 패션 마켓 리포트 (통계청)</a></li> -->
+                                    </ul>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="page-indicator">PAGE 02</div>
-                </div>
-
-                <!-- [PAGE 3: Copy Logic] -->
-                <div id="brand-kit-page-3" class="a4-page-dark flex flex-col">
-                    <div class="flex justify-between items-center border-b-2 border-gray-800 pb-6 mb-12">
-                        <h1 class="text-5xl font-montserrat font-black text-white tracking-tighter uppercase leading-none">COPY LOGIC<br><span class="text-cyan-400">STRUCTURE</span></h1>
-                        <img id="bk-logo-3" src="" class="h-12 w-auto object-contain opacity-50">
-                    </div>
-
-                    <div class="flex-1 flex flex-col gap-6 relative">
-                        <!-- 세로 연결선 -->
-                        <div class="absolute left-6 top-8 bottom-40 w-0.5 bg-gray-800 z-0"></div>
-
-                        <!-- Step 1 -->
-                        <div class="relative z-10 flex gap-8 items-start">
-                            <div class="w-12 h-12 rounded-full bg-[#111] border-2 border-gray-700 flex items-center justify-center font-montserrat font-black text-gray-500 flex-shrink-0 mt-1">01</div>
-                            <div class="bg-[#111] border border-gray-800 p-6 rounded-xl flex-1">
-                                <h3 class="text-xs font-black text-gray-400 tracking-widest uppercase mb-2">INSIGHT</h3>
-                                <p id="bk-p3-step1" class="text-sm text-gray-200 leading-relaxed font-light">인사이트 내용...</p>
-                            </div>
+                        
+                        <div class="pdf-footer-line">
+                            <span class="brand-watermark opacity-20">JAEMIN STUDIO.</span>
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-widest" id="bk-p1-date">DATE</span>
                         </div>
+                    </div> <!-- End Page 1 -->
 
-                        <!-- Step 2 -->
-                        <div class="relative z-10 flex gap-8 items-start">
-                            <div class="w-12 h-12 rounded-full bg-[#111] border-2 border-gray-700 flex items-center justify-center font-montserrat font-black text-gray-500 flex-shrink-0 mt-1">02</div>
-                            <div class="bg-[#111] border border-gray-800 p-6 rounded-xl flex-1">
-                                <h3 class="text-xs font-black text-gray-400 tracking-widest uppercase mb-2">CONCEPT</h3>
-                                <p id="bk-p3-step2" class="text-sm text-gray-200 leading-relaxed font-light">컨셉 내용...</p>
-                            </div>
+                    <!-- =========================================
+                         [PAGE 2: Visual Board & Design System]
+                         ========================================= -->
+                    <div id="pdf-page-2" class="pdf-page-container" style="top: 1080px; position: absolute;">
+                        <div class="pdf-header-line">
+                            <h2 class="font-montserrat font-black text-3xl text-gray-800">VISUAL BOARD</h2>
+                            <span class="font-bold text-sm text-cyan-600">PAGE 02</span>
                         </div>
-
-                        <!-- Step 3 -->
-                        <div class="relative z-10 flex gap-8 items-start">
-                            <div class="w-12 h-12 rounded-full bg-[#111] border-2 border-cyan-800 flex items-center justify-center font-montserrat font-black text-cyan-500 flex-shrink-0 mt-1">03</div>
-                            <div class="bg-cyan-900/10 border border-cyan-900/50 p-6 rounded-xl flex-1">
-                                <h3 class="text-xs font-black text-cyan-500 tracking-widest uppercase mb-2">CORE MESSAGE</h3>
-                                <p id="bk-p3-step3" class="text-sm text-cyan-100 leading-relaxed font-light">메시지 내용...</p>
+                        
+                        <div class="flex h-full mt-16 pt-8 pb-16 gap-12">
+                            
+                            <!-- Left: Visual Moodboard (Collage) -->
+                            <div class="w-3/5 flex flex-col h-full">
+                                <h3 class="text-xl font-bold text-gray-800 mb-4 font-montserrat uppercase tracking-widest">Mood & Tone</h3>
+                                <p id="bk-p2-vibe" class="text-sm text-gray-500 mb-6 font-medium leading-relaxed">비주얼 설명...</p>
+                                <!-- Pinterest Style Grid -->
+                                <div id="bk-p2-collage" class="flex-1 grid grid-cols-12 grid-rows-3 gap-3">
+                                    <!-- JS Inject -->
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Final Copy -->
-                        <div class="mt-auto border-t-2 border-gray-800 pt-10">
-                            <h3 class="text-center text-[10px] font-montserrat font-black text-cyan-400 tracking-[0.3em] uppercase mb-6">FINAL MANIFESTO COPY</h3>
-                            <div class="text-center px-10">
-                                <p id="bk-p3-final" class="text-3xl font-black text-white leading-tight break-keep" style="word-break: keep-all;">"여기에 최종 메인 카피가 표시됩니다."</p>
+                            <!-- Right: Design System (Color, Typography, Fabrics/Assets) -->
+                            <div class="w-2/5 flex flex-col h-full border-l border-gray-200 pl-12">
+                                <div class="mb-10">
+                                    <h3 class="text-xl font-bold text-gray-800 mb-6 font-montserrat uppercase tracking-widest border-b border-gray-200 pb-2">Color Palette</h3>
+                                    <div id="bk-p2-colors" class="grid grid-cols-2 gap-4">
+                                        <!-- JS Inject (Fabric/Color Chip Style) -->
+                                    </div>
+                                </div>
+
+                                <div class="mb-10">
+                                    <h3 class="text-xl font-bold text-gray-800 mb-6 font-montserrat uppercase tracking-widest border-b border-gray-200 pb-2">Typography</h3>
+                                    <div class="flex gap-4 mb-4">
+                                        <div class="w-1/4 text-xs font-bold text-gray-400">KOR/ENG</div>
+                                        <div class="w-3/4">
+                                            <h4 id="bk-p2-font" class="text-2xl font-black text-gray-900 font-montserrat">Roboto</h4>
+                                            <p id="bk-p2-font-weights" class="text-xs text-gray-500 mt-1 uppercase">Medium / Bold / Black</p>
+                                        </div>
+                                    </div>
+                                    <div class="bg-gray-50 p-4 border border-gray-200 rounded-lg">
+                                        <p class="text-3xl text-gray-800 tracking-tighter" style="font-family: serif;">Aa Bb Cc 가 나 다</p>
+                                        <p class="text-sm text-gray-400 mt-2 font-medium">직관적이고 미니멀한 서체를 사용하여 정보 전달력을 높입니다.</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex-1">
+                                    <h3 class="text-xl font-bold text-gray-800 mb-6 font-montserrat uppercase tracking-widest border-b border-gray-200 pb-2">Key Asset / Logo</h3>
+                                    <div class="bg-blue-50 border border-blue-100 rounded-lg w-full h-40 flex items-center justify-center p-6">
+                                        <img id="bk-p2-logo" src="" class="max-w-full max-h-full object-contain mix-blend-multiply opacity-80">
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="page-indicator">PAGE 03</div>
-                </div>
 
+                        </div>
+                        
+                        <div class="pdf-footer-line">
+                            <span class="brand-watermark opacity-20">JAEMIN STUDIO.</span>
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">CONFIDENTIAL</span>
+                        </div>
+                    </div> <!-- End Page 2 -->
+
+                    <!-- =========================================
+                         [PAGE 3: Copy Logic & Ideation]
+                         ========================================= -->
+                    <div id="pdf-page-3" class="pdf-page-container" style="top: 2160px; position: absolute;">
+                        <div class="pdf-header-line">
+                            <h2 class="font-montserrat font-black text-3xl text-gray-800">COPY LOGIC & IDEATION</h2>
+                            <span class="font-bold text-sm text-cyan-600">PAGE 03</span>
+                        </div>
+                        
+                        <div class="flex flex-col h-full mt-16 pt-8 pb-16">
+                            
+                            <!-- Logic Flow (가로 화살표 형태) -->
+                            <div class="w-full flex items-center justify-between mb-16 relative">
+                                <div class="absolute left-0 right-0 h-1 bg-gray-200 top-1/2 transform -translate-y-1/2 z-0"></div>
+                                
+                                <div class="bg-white z-10 p-6 border-2 border-gray-200 rounded-xl w-[30%] shadow-sm text-center">
+                                    <span class="text-[10px] font-black text-gray-400 tracking-widest uppercase block mb-2">STEP 1. Insight</span>
+                                    <p id="bk-p3-insight" class="text-sm font-bold text-gray-700 break-keep">인사이트 도출...</p>
+                                </div>
+                                <div class="bg-gray-100 z-10 p-2 rounded-full border border-gray-300"><svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg></div>
+                                
+                                <div class="bg-white z-10 p-6 border-2 border-cyan-500 rounded-xl w-[30%] shadow-md text-center">
+                                    <span class="text-[10px] font-black text-cyan-600 tracking-widest uppercase block mb-2">STEP 2. Direction</span>
+                                    <p id="bk-p3-direction" class="text-sm font-black text-gray-900 break-keep">카피 방향성 설정...</p>
+                                </div>
+                                <div class="bg-gray-100 z-10 p-2 rounded-full border border-gray-300"><svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg></div>
+                                
+                                <div class="bg-cyan-50 z-10 p-6 border-2 border-cyan-500 rounded-xl w-[30%] shadow-md text-center relative overflow-hidden">
+                                    <div class="absolute top-0 right-0 bg-cyan-500 text-white text-[8px] font-bold px-2 py-1 uppercase rounded-bl-lg">Core Message</div>
+                                    <span class="text-[10px] font-black text-cyan-600 tracking-widest uppercase block mb-2">STEP 3. Message</span>
+                                    <p id="bk-p3-message" class="text-base font-black text-cyan-900 break-keep">핵심 메시지 전달...</p>
+                                </div>
+                            </div>
+
+                            <!-- 3 Copy Ideas -->
+                            <div class="flex-1 flex flex-col justify-center">
+                                <h3 class="text-center font-montserrat font-black text-2xl text-gray-800 tracking-widest uppercase mb-10">3 Copy Proposals</h3>
+                                
+                                <div class="flex gap-8 w-full">
+                                    <!-- Idea A -->
+                                    <div class="flex-1 bg-gray-50 border border-gray-200 rounded-2xl p-10 flex flex-col justify-between hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
+                                        <div>
+                                            <span class="inline-block bg-black text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-6">Type A. 감성/공감형</span>
+                                            <p id="bk-p3-copy1" class="text-3xl font-black text-gray-900 leading-tight break-keep mb-6">"카피 아이디어 A가 들어갑니다."</p>
+                                        </div>
+                                        <p id="bk-p3-copy1-desc" class="text-sm text-gray-500 font-medium leading-relaxed border-t border-gray-200 pt-4 group-hover:text-gray-800 transition-colors">이유 설명...</p>
+                                    </div>
+                                    
+                                    <!-- Idea B -->
+                                    <div class="flex-1 bg-white border-2 border-cyan-500 rounded-2xl p-10 flex flex-col justify-between shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 group relative overflow-hidden">
+                                        <div class="absolute top-0 right-0 bg-cyan-500 text-white text-[10px] font-bold px-4 py-1.5 uppercase rounded-bl-xl tracking-widest">Best Pick</div>
+                                        <div>
+                                            <span class="inline-block bg-cyan-100 text-cyan-800 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-6">Type B. 직관/선언형</span>
+                                            <p id="bk-p3-copy2" class="text-3xl font-black text-gray-900 leading-tight break-keep mb-6">"카피 아이디어 B가 들어갑니다."</p>
+                                        </div>
+                                        <p id="bk-p3-copy2-desc" class="text-sm text-gray-500 font-medium leading-relaxed border-t border-gray-200 pt-4 group-hover:text-gray-800 transition-colors">이유 설명...</p>
+                                    </div>
+
+                                    <!-- Idea C -->
+                                    <div class="flex-1 bg-gray-50 border border-gray-200 rounded-2xl p-10 flex flex-col justify-between hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
+                                        <div>
+                                            <span class="inline-block bg-black text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest mb-6">Type C. 유머/위트형</span>
+                                            <p id="bk-p3-copy3" class="text-3xl font-black text-gray-900 leading-tight break-keep mb-6">"카피 아이디어 C가 들어갑니다."</p>
+                                        </div>
+                                        <p id="bk-p3-copy3-desc" class="text-sm text-gray-500 font-medium leading-relaxed border-t border-gray-200 pt-4 group-hover:text-gray-800 transition-colors">이유 설명...</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        
+                        <div class="pdf-footer-line">
+                            <span class="brand-watermark opacity-20">JAEMIN STUDIO.</span>
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">COPYWRITING & IDEATION</span>
+                        </div>
+                    </div> <!-- End Page 3 -->
+
+                </div> <!-- End Pages Wrapper -->
             </div>
         </div>
 
@@ -520,7 +639,6 @@
             }, 3000);
         }
 
-        // 아주 견고한 JSON 데이터 파서
         function parseAIJSON(rawText) {
             try {
                 let clean = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
@@ -587,29 +705,10 @@
             if(tabName === 'copy') renderCopyGrid();
         };
 
-        window.toggleCardStrategy = function(btn) {
-            const card = btn.closest('.archive-card');
-            const copySection = card.querySelector('.copy-section');
-            const strategySection = card.querySelector('.strategy-section');
-            if (copySection.classList.contains('hidden')) {
-                copySection.classList.remove('hidden', 'opacity-0'); copySection.classList.add('block', 'opacity-100');
-                strategySection.classList.add('hidden', 'opacity-0'); strategySection.classList.remove('block', 'opacity-100');
-                btn.innerHTML = `<span class="w-1.5 h-1.5 bg-purple-400 rounded-full animate-pulse"></span> View Campaign Strategy`;
-                btn.classList.replace('border-purple-800/40', 'border-gray-800');
-            } else {
-                copySection.classList.add('hidden', 'opacity-0'); copySection.classList.remove('block', 'opacity-100');
-                strategySection.classList.remove('hidden', 'opacity-0'); strategySection.classList.add('block', 'opacity-100');
-                btn.innerHTML = `<span class="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse"></span> View Copy`;
-                btn.classList.replace('border-gray-800', 'border-purple-800/40');
-            }
-        };
-
         const quotesData = [
             { en: "If it doesn't sell, it isn't creative.", ko: "팔리지 않으면 크리에이티브가 아니다.", author: "David Ogilvy" },
             { en: "The consumer isn't a moron. She is your wife.", ko: "소비자는 바보가 아니다. 그녀는 당신의 아내다.", author: "David Ogilvy" },
-            { en: "What really decides consumers to buy or not to buy is the content of your advertising, not its form.", ko: "소비자가 구매를 결정하는 진짜 이유는 광고의 형식이 아니라 그 내용이다.", author: "David Ogilvy" },
-            { en: "Nobody reads ads. People read what interests them, and sometimes it's an ad.", ko: "아무도 광고를 읽지 않는다. 사람들은 흥미로운 것을 읽을 뿐이고, 때론 그것이 광고일 뿐이다.", author: "Howard Gossage" },
-            { en: "Creativity is like washing a pig. It's messy. It has no rules. No clear beginning, middle or end.", ko: "크리에이티브는 돼지를 목욕시키는 것과 같다. 지저분하고, 규칙도 없으며, 시작과 끝도 불분명하다.", author: "Luke Sullivan" }
+            { en: "What really decides consumers to buy or not to buy is the content of your advertising, not its form.", ko: "소비자가 구매를 결정하는 진짜 이유는 광고의 형식이 아니라 그 내용이다.", author: "David Ogilvy" }
         ];
 
         const qEn = document.getElementById('quote-en'); const qKo = document.getElementById('quote-ko'); const qAuth = document.getElementById('quote-author');
@@ -637,23 +736,29 @@
         window.onload = function() {
             const savedKey = localStorage.getItem('gemini_api_key') || "";
             if (document.getElementById('gemini-key-input')) document.getElementById('gemini-key-input').value = savedKey;
+            
+            // 오늘 날짜 설정 (PAGE 1 Footer)
+            const today = new Date();
+            const dateStr = today.getFullYear() + '.' + String(today.getMonth() + 1).padStart(2, '0') + '.' + String(today.getDate()).padStart(2, '0');
+            const dateEl = document.getElementById('bk-p1-date');
+            if(dateEl) dateEl.innerText = dateStr;
         };
 
         window.saveGeminiKey = function() {
             const keyVal = document.getElementById('gemini-key-input').value.trim();
             localStorage.setItem('gemini_api_key', keyVal);
-            showMsg("API 키가 안전하게 저장되었습니다!");
+            showMsg("API 키가 저장되었습니다!");
             toggleSettings();
         };
 
-        // --- 에러 방지 통신 로직 ---
+        // --- 에러 방지 통신 로직 (Gemini 3.1 Pro 최우선) ---
         async function requestGemini(promptText, imagesBase64 = []) {
             let activeKey = localStorage.getItem('gemini_api_key');
             if (!activeKey) activeKey = apiKey; 
 
-            // 최상위 플래그십 3.5-pro / 3.1-pro 모델을 1순위로 배치
+            // 1순위: 3.1-pro-preview (가장 똑똑하고 안정적) -> 2순위: 2.5-pro -> 3순위: 1.5-pro
             let models = (activeKey && activeKey !== "") 
-                ? ["gemini-3.5-pro", "gemini-3.1-pro", "gemini-2.5-pro", "gemini-1.5-pro-latest"] 
+                ? ["gemini-3.1-pro-preview", "gemini-2.5-pro", "gemini-1.5-pro-latest"] 
                 : ["gemini-2.5-flash-preview-09-2025"];
 
             const parts = [{ text: promptText }];
@@ -708,21 +813,8 @@
         }
         
         let app, auth, db;
-        try { 
-            app = initializeApp(firebaseConfig); 
-            auth = getAuth(app); 
-            db = getFirestore(app); 
-        } 
-        catch(e) { 
-            document.getElementById('auth-status').innerHTML = `<div class="w-2 h-2 bg-red-500 rounded-full"></div>초기화 실패`; 
-            const errorMsgDiv = document.getElementById('db-error-msg');
-            if(errorMsgDiv) {
-                errorMsgDiv.innerText = `DB 에러: ${e.message}`;
-                errorMsgDiv.classList.remove('hidden');
-                errorMsgDiv.classList.add('block');
-            }
-            console.error("Firebase Init Error:", e);
-        }
+        try { app = initializeApp(firebaseConfig); auth = getAuth(app); db = getFirestore(app); } 
+        catch(e) { document.getElementById('auth-status').innerHTML = `<div class="w-2 h-2 bg-red-500 rounded-full"></div>초기화 실패`; }
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         let currentUser = null;
@@ -1199,6 +1291,8 @@
         // ==========================================
         // [3-PAGE BRAND KIT PDF GENERATOR]
         // ==========================================
+        let currentChart = null; // 차트 인스턴스 저장용
+
         window.previewBrandLogo = function(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -1226,10 +1320,10 @@
             btn.classList.add('opacity-80', 'cursor-not-allowed');
 
             document.getElementById('brand-kit-loading').classList.remove('hidden');
-            document.getElementById('brand-kit-wrapper').classList.add('hidden');
+            document.getElementById('brand-kit-display-area').classList.add('hidden');
 
             try {
-                // 아카이브에서 안전하게 데이터 추출 (이미지가 있는 것만)
+                // 아카이브에서 데이터 추출 (이미지가 있는 것만)
                 const safeArchive = archiveData.slice(0, 50).filter(a => a.images && a.images.length > 0).map(a => ({ id: a.id, brand: a.brand, tags: a.visual_tags }));
                 
                 const prompt = `당신은 최고 수준의 브랜드 디렉터입니다. 브랜드명("${brandName}"), 관련 키워드("${keywords}")와 첨부된 브랜드 로고/이미지를 바탕으로 총 3페이지 분량의 에디토리얼 브랜딩 기획서를 작성하세요.
@@ -1237,82 +1331,143 @@
 [아카이브 데이터]: ${JSON.stringify(safeArchive)}
 
 반드시 아래 JSON 형식의 키(Key)를 단 하나도 빠짐없이 모두 포함하여 순수 JSON 텍스트로만 응답하세요. (마크다운 백틱 제외)
+
 {
-  "page1_insight": "시장 거시적 트렌드 분석 (150자 내외)",
-  "page1_competitor": "경쟁사 동향 및 전략적 방향 (150자 내외)",
-  "page1_target": "타겟 오디언스 상세 분석 (100자 내외)",
-  "page1_tags": ["#키워드1", "#키워드2", "#키워드3"],
-  
-  "page2_theme": "시각적 무드 테마명 (예: URBAN CHIC)",
-  "page2_desc": "비주얼 무드에 대한 구체적 설명 (100자 내외)",
-  "page2_colors": [{"hex": "#HEXCODE", "name": "ColorName1"}, {"hex": "#HEXCODE", "name": "ColorName2"}, {"hex": "#HEXCODE", "name": "ColorName3"}],
-  "page2_font": "추천 눈누 폰트명",
+  "page1_market": "시장 거시적 트렌드, 최신 뉴스 기반 인사이트 분석 (200자 내외. 구체적인 트렌드 서술)",
+  "page1_target": "타겟 오디언스의 구체적인 라이프스타일과 페인포인트 분석 (150자 내외)",
+  "page1_goal": "이 캠페인의 최종적인 광고 목표 및 포지셔닝 전략 (100자 내외)",
+  "page1_concept": "위 분석을 바탕으로 도출된 핵심 크리에이티브 컨셉과 그 이유 (Reason-why) (150자 내외)",
+  "page1_chart_data": [25, 45, 60, 85, 100], 
+  "page1_chart_labels": ["2022", "2023", "2024", "2025", "2026(E)"],
+  "page1_sources": [
+    {"year": "2026", "text": "글로벌 마켓 인사이트 리포트", "url": "#"},
+    {"year": "2025", "text": "국내 소비 트렌드 결산 (통계청)", "url": "#"}
+  ],
+
+  "page2_vibe": "이 브랜드에 어울리는 시각적 무드에 대한 구체적이고 감각적인 설명 (150자 내외)",
+  "page2_colors": [{"hex": "#HEXCODE", "name": "ColorName1"}, {"hex": "#HEXCODE", "name": "ColorName2"}, {"hex": "#HEXCODE", "name": "ColorName3"}, {"hex": "#HEXCODE", "name": "ColorName4"}, {"hex": "#HEXCODE", "name": "ColorName5"}],
+  "page2_font": "Roboto",
   "page2_moodboard_ids": ["id1", "id2", "id3", "id4", "id5", "id6"],
+
+  "page3_insight": "타겟의 페인포인트에서 발견한 한 줄의 날카로운 인사이트",
+  "page3_direction": "카피라이팅이 향해야 할 감정적/논리적 방향성",
+  "page3_message": "소비자에게 던질 단 하나의 코어 메시지",
   
-  "page3_step1_insight": "타겟의 페인포인트 또는 핵심 인사이트 (1줄)",
-  "page3_step2_concept": "브랜드가 제시할 해결책 또는 핵심 컨셉 (1줄)",
-  "page3_step3_message": "소비자에게 던질 코어 메시지 방향 (1줄)",
-  "page3_final_copy": "완성된 최종 매니페스토 메인 카피 (가장 매력적인 1~2줄)"
+  "page3_copy1_type": "감성/공감형",
+  "page3_copy1_text": "카피 제안 A (1~2줄)",
+  "page3_copy1_desc": "이 카피가 타겟의 어떤 감정을 건드리는지 이유 설명",
+  
+  "page3_copy2_type": "직관/선언형",
+  "page3_copy2_text": "카피 제안 B (1~2줄)",
+  "page3_copy2_desc": "이 카피가 가지는 힘과 브랜드 포지셔닝 강화 이유",
+  
+  "page3_copy3_type": "유머/위트형",
+  "page3_copy3_text": "카피 제안 C (1~2줄)",
+  "page3_copy3_desc": "이 카피가 바이럴 되거나 시선을 끄는 이유"
 }`;
                 
                 const resRaw = await requestGemini(prompt, [logoSrc]);
                 const parsed = parseAIJSON(resRaw);
 
                 // --- Page 1 매핑 ---
-                document.getElementById('bk-name-1').innerText = brandName;
-                document.getElementById('bk-logo-1').src = logoSrc;
-                document.getElementById('bk-p1-insight').innerText = parsed.page1_insight || "시장 트렌드 분석 중...";
-                document.getElementById('bk-p1-comp').innerText = parsed.page1_competitor || "경쟁사 분석 중...";
+                document.getElementById('bk-p1-name').innerText = brandName;
+                document.getElementById('bk-p1-logo').src = logoSrc;
+                document.getElementById('bk-p1-market').innerText = parsed.page1_market || "시장 트렌드 분석 중...";
                 document.getElementById('bk-p1-target').innerText = parsed.page1_target || "타겟 분석 중...";
+                document.getElementById('bk-p1-goal').innerText = parsed.page1_goal || "목표 분석 중...";
+                document.getElementById('bk-p1-concept').innerText = parsed.page1_concept || "컨셉 도출 중...";
                 
-                let tagsHtml = '';
-                (parsed.page1_tags || []).forEach(t => {
-                    tagsHtml += `<span class="text-[10px] text-gray-300 border border-gray-700 px-3 py-1 rounded-full bg-black">${t}</span>`;
+                // Chart.js 렌더링
+                if(currentChart) currentChart.destroy();
+                const ctx = document.getElementById('marketChart').getContext('2d');
+                currentChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: parsed.page1_chart_labels || ['A', 'B', 'C'],
+                        datasets: [{
+                            label: 'Market Growth Trend',
+                            data: parsed.page1_chart_data || [10, 20, 30],
+                            backgroundColor: 'rgba(6, 182, 212, 0.8)', // Cyan-500
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true, grid: { color: '#e5e7eb' } },
+                            x: { grid: { display: false } }
+                        }
+                    }
                 });
-                document.getElementById('bk-p1-tags').innerHTML = tagsHtml;
+
+                // 출처 렌더링
+                let sourcesHtml = '';
+                (parsed.page1_sources || []).forEach(src => {
+                    sourcesHtml += `<li><span class="font-bold mr-1">[${src.year}]</span> <a href="${src.url}" class="hover:text-cyan-500 transition-colors cursor-pointer" target="_blank">${src.text}</a></li>`;
+                });
+                document.getElementById('bk-p1-sources').innerHTML = sourcesHtml;
+
 
                 // --- Page 2 매핑 ---
-                document.getElementById('bk-logo-2').src = logoSrc;
-                document.getElementById('bk-p2-theme').innerText = `THEME: ${parsed.page2_theme || "UNKNOWN"}`;
-                document.getElementById('bk-p2-desc').innerText = parsed.page2_desc || "비주얼 무드 설명...";
-                document.getElementById('bk-p2-font').innerText = parsed.page2_font || "Pretendard";
+                document.getElementById('bk-p2-logo').src = logoSrc;
+                document.getElementById('bk-p2-vibe').innerText = parsed.page2_vibe || "비주얼 무드 설명...";
+                document.getElementById('bk-p2-font').innerText = parsed.page2_font || "Roboto";
                 
+                // 컬러칩 (5개)
                 let colorsHtml = '';
-                (parsed.page2_colors || []).slice(0,3).forEach(c => {
-                    colorsHtml += `<div class="flex-1 rounded-sm border border-gray-600 shadow-inner flex flex-col justify-end p-1" style="background-color: ${c.hex}"><span class="text-[8px] font-bold mix-blend-difference text-white uppercase">${c.hex}</span></div>`;
+                (parsed.page2_colors || []).slice(0,5).forEach(c => {
+                    colorsHtml += `
+                        <div class="flex flex-col border border-gray-200 rounded-md overflow-hidden shadow-sm">
+                            <div class="h-16 w-full" style="background-color: ${c.hex}"></div>
+                            <div class="p-2 bg-white">
+                                <p class="text-[10px] font-bold text-gray-800 truncate">${c.name}</p>
+                                <p class="text-[9px] text-gray-400 uppercase tracking-widest mt-0.5">${c.hex}</p>
+                            </div>
+                        </div>
+                    `;
                 });
                 document.getElementById('bk-p2-colors').innerHTML = colorsHtml;
 
+                // 핀터레스트 스타일 콜라주
                 let selectedImages = [];
                 (parsed.page2_moodboard_ids || []).forEach(id => {
                     const ad = archiveData.find(a => a.id === id);
                     if (ad && ad.images && ad.images.length > 0) { selectedImages.push(ad.images[0]); }
                 });
-                
-                // 만약 AI가 6장을 꽉 채우지 못했다면 랜덤으로 보충
                 let fallbackPool = archiveData.flatMap(a => a.images);
                 fallbackPool.sort(() => 0.5 - Math.random());
                 while(selectedImages.length < 6 && fallbackPool.length > 0) { selectedImages.push(fallbackPool.pop()); }
 
                 let collageHtml = '';
+                // 잡지 레이아웃용 그리드 클래스 조합
                 const gridClasses = [
-                    "col-span-6 row-span-2", "col-span-3 row-span-1", "col-span-3 row-span-1",
-                    "col-span-3 row-span-1", "col-span-3 row-span-1", "col-span-6 row-span-1"
+                    "col-span-8 row-span-2", "col-span-4 row-span-1", "col-span-4 row-span-1",
+                    "col-span-4 row-span-1", "col-span-4 row-span-1", "col-span-4 row-span-1"
                 ];
                 for(let i=0; i<Math.min(selectedImages.length, 6); i++) {
-                    collageHtml += `<div class="${gridClasses[i]} overflow-hidden bg-[#111] border border-gray-800"><img src="${selectedImages[i]}" class="w-full h-full object-cover opacity-90 hover:opacity-100 transition-opacity filter grayscale-[20%] hover:grayscale-0"></div>`;
+                    collageHtml += `<div class="${gridClasses[i]} rounded-none overflow-hidden bg-gray-100"><img src="${selectedImages[i]}" class="w-full h-full object-cover grayscale-[30%] hover:grayscale-0 transition-all duration-500"></div>`;
                 }
                 document.getElementById('bk-p2-collage').innerHTML = collageHtml;
 
-                // --- Page 3 매핑 ---
-                document.getElementById('bk-logo-3').src = logoSrc;
-                document.getElementById('bk-p3-step1').innerText = parsed.page3_step1_insight || "...";
-                document.getElementById('bk-p3-step2').innerText = parsed.page3_step2_concept || "...";
-                document.getElementById('bk-p3-step3').innerText = parsed.page3_step3_message || "...";
-                document.getElementById('bk-p3-final').innerText = `"${parsed.page3_final_copy || "JUST DO IT."}"`;
 
-                document.getElementById('brand-kit-wrapper').classList.remove('hidden');
-                showMsg("3페이지 분량의 기획서 렌더링이 완료되었습니다!");
+                // --- Page 3 매핑 ---
+                document.getElementById('bk-p3-insight').innerText = parsed.page3_insight || "...";
+                document.getElementById('bk-p3-direction').innerText = parsed.page3_direction || "...";
+                document.getElementById('bk-p3-message').innerText = parsed.page3_message || "...";
+                
+                document.getElementById('bk-p3-copy1').innerText = `"${parsed.page3_copy1_text}"`;
+                document.getElementById('bk-p3-copy1-desc').innerText = parsed.page3_copy1_desc;
+                
+                document.getElementById('bk-p3-copy2').innerText = `"${parsed.page3_copy2_text}"`;
+                document.getElementById('bk-p3-copy2-desc').innerText = parsed.page3_copy2_desc;
+                
+                document.getElementById('bk-p3-copy3').innerText = `"${parsed.page3_copy3_text}"`;
+                document.getElementById('bk-p3-copy3-desc').innerText = parsed.page3_copy3_desc;
+
+                document.getElementById('brand-kit-display-area').classList.remove('hidden');
+                showMsg("3페이지 1920x1080 포맷 렌더링이 완료되었습니다!");
             } catch(e) { showMsg("브랜드 키트 생성 오류: " + e.message); }
             
             document.getElementById('brand-kit-loading').classList.add('hidden');
@@ -1324,26 +1479,39 @@
         window.exportBrandKitPDF = async function(event) {
             const btn = event.currentTarget;
             const originalText = btn.innerHTML;
-            btn.innerHTML = `PDF 굽는 중...`; btn.disabled = true;
+            btn.innerHTML = `<div class="btn-loader inline-block mr-2 align-middle border-t-black"></div> PDF 굽는 중...`; btn.disabled = true;
 
             try {
-                const pdf = new jspdf.jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = pdf.internal.pageSize.getHeight();
+                // PDF를 가로형(landscape), 1920x1080 비율에 맞추기 위해 Letter 사이즈 혹은 직접 mm 지정
+                // 1920x1080 = 16:9. A4가 아니므로 커스텀 포맷 사용
+                const pdf = new jspdf.jsPDF({ orientation: 'landscape', unit: 'px', format: [1920, 1080] });
                 
-                const pages = ['brand-kit-page-1', 'brand-kit-page-2', 'brand-kit-page-3'];
+                const pages = ['pdf-page-1', 'pdf-page-2', 'pdf-page-3'];
                 
                 for(let i=0; i<pages.length; i++) {
                     if (i > 0) pdf.addPage();
                     const el = document.getElementById(pages[i]);
-                    // 다크테마 PDF를 위해 배경색 지정
-                    const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#050505" });
+                    
+                    // 캡처를 위해 임시로 스케일을 1로 되돌림 (선명도 확보)
+                    el.style.transform = 'scale(1)';
+                    
+                    const canvas = await html2canvas(el, { 
+                        scale: 2, // 고해상도 렌더링
+                        useCORS: true, 
+                        backgroundColor: "#ffffff",
+                        width: 1920,
+                        height: 1080
+                    });
+                    
+                    // 다시 원래 화면용 스케일로 복구
+                    el.style.transform = 'scale(0.6)';
+
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+                    pdf.addImage(imgData, 'JPEG', 0, 0, 1920, 1080);
                 }
 
-                pdf.save(`BrandKit_${document.getElementById('bk-name-1').innerText.replace(/\s/g,'_')}.pdf`);
-                showMsg("3페이지 PDF 다운로드 완료!");
+                pdf.save(`BrandKit_${document.getElementById('bk-p1-name').innerText.replace(/\s/g,'_')}.pdf`);
+                showMsg("3페이지 고해상도 PDF 다운로드 완료!");
             } catch(e) { showMsg("PDF 저장 오류: " + e.message); }
             
             btn.innerHTML = originalText; btn.disabled = false;
@@ -1520,14 +1688,9 @@
             document.getElementById('chat-window-area').scrollIntoView({ behavior: 'smooth', block: 'end' });
         };
         
-        // 따옴표나 줄바꿈이 있는 문자열을 HTML 이벤트 내부에 넣기 위해 이스케이프 처리하는 함수
         function escapeForJS(str) {
             if (!str) return "";
-            return str.replace(/\\/g, "\\\\")
-                      .replace(/'/g, "\\'")
-                      .replace(/"/g, '&quot;')
-                      .replace(/\n/g, "\\n")
-                      .replace(/\r/g, "");
+            return str.replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, "\\n").replace(/\r/g, "");
         }
     </script>
 </body>
