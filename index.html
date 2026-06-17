@@ -260,7 +260,7 @@
             </div>
         </div>
 
-        <!-- 탭 6: BRAND KIT (3 Pages PDF Generator) -->
+        <!-- 탭 6: BRAND KIT -->
         <div id="tab-brandkit" class="hidden max-w-[1200px] mx-auto px-6 py-12">
             <div class="text-center mb-12">
                 <h2 class="text-4xl md:text-6xl font-montserrat text-white mb-4 tracking-tighter uppercase">Brand Kit Generator</h2>
@@ -504,6 +504,9 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, doc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
         window.currentCopyIdeas = [];
 
         window.showMsg = function(msg) {
@@ -690,18 +693,36 @@
             throw new Error(`AI 통신 실패: ${lastErrorMsg}`);
         }
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyC2n6v_mPIhSrzFUY8ccQblvSTB64VTIY8",
-            authDomain: "tvcf-941bf.firebaseapp.com",
-            projectId: "tvcf-941bf",
-            storageBucket: "tvcf-941bf.firebasestorage.app",
-            messagingSenderId: "1029920027489",
-            appId: "1:1029920027489:web:c142e6303b9a701b3bcb20"
-        };
+        let firebaseConfig;
+        if (typeof __firebase_config !== 'undefined') {
+            firebaseConfig = JSON.parse(__firebase_config);
+        } else {
+            firebaseConfig = {
+                apiKey: "AIzaSyC2n6v_mPIhSrzFUY8ccQblvSTB64VTIY8",
+                authDomain: "tvcf-941bf.firebaseapp.com",
+                projectId: "tvcf-941bf",
+                storageBucket: "tvcf-941bf.firebasestorage.app",
+                messagingSenderId: "1029920027489",
+                appId: "1:1029920027489:web:c142e6303b9a701b3bcb20"
+            };
+        }
         
         let app, auth, db;
-        try { app = initializeApp(firebaseConfig); auth = getAuth(app); db = getFirestore(app); } 
-        catch(e) { document.getElementById('auth-status').innerHTML = `<div class="w-2 h-2 bg-red-500 rounded-full"></div>초기화 실패`; }
+        try { 
+            app = initializeApp(firebaseConfig); 
+            auth = getAuth(app); 
+            db = getFirestore(app); 
+        } 
+        catch(e) { 
+            document.getElementById('auth-status').innerHTML = `<div class="w-2 h-2 bg-red-500 rounded-full"></div>초기화 실패`; 
+            const errorMsgDiv = document.getElementById('db-error-msg');
+            if(errorMsgDiv) {
+                errorMsgDiv.innerText = `DB 에러: ${e.message}`;
+                errorMsgDiv.classList.remove('hidden');
+                errorMsgDiv.classList.add('block');
+            }
+            console.error("Firebase Init Error:", e);
+        }
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         let currentUser = null;
@@ -977,6 +998,84 @@
             grid.innerHTML = gridHTML; 
         }
         document.getElementById('visual-search').addEventListener('input', debounce(renderVisualGrid, 300));
+
+        // ==========================================
+        // 연관 레퍼런스(Similar Visuals) 
+        // ==========================================
+        window.openImageViewer = function(imgSrc, adId, imgIdx) {
+            const modal = document.getElementById('image-viewer-modal');
+            document.getElementById('viewer-main-image').src = imgSrc;
+            
+            document.getElementById('viewer-extract-btn').onclick = function() {
+                closeImageViewer(); window.generateImagePrompt(adId, imgIdx);
+            };
+            
+            const sourceAd = archiveData.find(a => a.id === adId);
+            const similarContainer = document.getElementById('similar-visuals-grid');
+            similarContainer.innerHTML = '';
+            
+            if (sourceAd && sourceAd.visual_tags) {
+                const sTags = sourceAd.visual_tags;
+                let scored = archiveData.map(ad => {
+                    if (ad.id === adId) return null;
+                    let matchCount = (ad.visual_tags || []).filter(t => sTags.includes(t)).length;
+                    return { ad: ad, score: matchCount };
+                }).filter(x => x !== null && x.score > 0).sort((a, b) => b.score - a.score).slice(0, 5);
+                
+                scored.forEach(item => {
+                    const img = item.ad.images[0];
+                    if(img) {
+                        similarContainer.innerHTML += `
+                            <div class="relative w-full aspect-video rounded-lg overflow-hidden border border-gray-800 cursor-pointer hover:border-cyan-500 transition-colors shadow-sm group" onclick="window.openImageViewer('${img}', '${item.ad.id}', 0)">
+                                <img src="${img}" class="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-transform duration-500">
+                            </div>
+                        `;
+                    }
+                });
+                if (scored.length === 0) similarContainer.innerHTML = '<p class="text-gray-500 text-xs">연관된 이미지가 없습니다.</p>';
+            }
+            
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+            modal.style.opacity = '0'; setTimeout(() => modal.style.opacity = '1', 50);
+        };
+
+        window.closeImageViewer = function() {
+            const modal = document.getElementById('image-viewer-modal');
+            modal.style.opacity = '0';
+            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); document.getElementById('viewer-main-image').src = ''; }, 300);
+        };
+
+        window.generateImagePrompt = async function(adId, imgIdx) {
+            const ad = archiveData.find(a => a.id === adId);
+            if (!ad || !ad.images || !ad.images[imgIdx]) return;
+            const base64Img = ad.images[imgIdx]; const brand = ad.brand;
+            const modal = document.getElementById('prompt-modal'); const loader = document.getElementById('prompt-loading');
+            
+            modal.classList.remove('hidden'); modal.classList.add('flex'); loader.classList.remove('hidden');
+            document.getElementById('prompt-subject').value = ''; document.getElementById('prompt-background').value = '';
+            document.getElementById('prompt-camera').value = ''; document.getElementById('prompt-full-ko').value = '';
+            document.getElementById('prompt-modal-img').src = base64Img;
+            
+            document.getElementById('prompt-modal-download').href = base64Img; document.getElementById('prompt-modal-download').download = `${brand}_visual.jpg`;
+
+            try {
+                const promptReq = `Analyze this storyboard frame carefully. Break down the visual elements into specific prompt generation categories in KOREAN. You MUST return the result in JSON format ONLY: { "subject": "...", "background": "...", "camera": "...", "full_ko": "자연스러운 한국어 프롬프트 1문단" }`;
+                const aiPromptRaw = await requestGemini(promptReq, [base64Img]);
+                let parsed = parseAIJSON(aiPromptRaw);
+                document.getElementById('prompt-subject').value = parsed.subject || ''; document.getElementById('prompt-background').value = parsed.background || '';
+                document.getElementById('prompt-camera').value = parsed.camera || ''; document.getElementById('prompt-full-ko').value = parsed.full_ko || '';
+            } catch(e) { document.getElementById('prompt-full-ko').value = `[분석 에러] ${e.message}`; } 
+            finally { loader.classList.add('hidden'); }
+        };
+
+        window.closePromptModal = function() { document.getElementById('prompt-modal').classList.add('hidden'); document.getElementById('prompt-modal').classList.remove('flex'); };
+
+        window.copyPromptKo = function(e) {
+            const txt = document.getElementById('prompt-full-ko').value;
+            if (!txt || txt.includes("에러")) { e.preventDefault(); return showMsg("프롬프트가 없습니다."); }
+            let t = document.createElement("textarea"); t.value = txt; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t);
+            showMsg("✨ 한국어 프롬프트 복사 완료!");
+        };
 
         function renderCopyGrid() {
             const term = document.getElementById('copy-search').value.toLowerCase();
