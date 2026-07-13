@@ -1036,7 +1036,7 @@
         const firebaseConfig = { apiKey: "AIzaSyC2n6v_mPIhSrzFUY8ccQblvSTB64VTIY8", authDomain: "tvcf-941bf.firebaseapp.com", projectId: "tvcf-941bf", storageBucket: "tvcf-941bf.firebasestorage.app", messagingSenderId: "1029920027489", appId: "1:1029920027489:web:c142e6303b9a701b3bcb20" };
         let app, auth, db; const authStatus = document.getElementById('auth-status');
         try { app = initializeApp(firebaseConfig); auth = getAuth(app); db = getFirestore(app); } catch(e) { authStatus.innerHTML = `<div class="w-2 h-2 bg-red-500 rounded-full"></div>초기화 실패`; }
-        const APP_ID_FALLBACK = 'tvcf-941bf-app';  // 파일을 그냥 브라우저로 열 때 사용할 고정 경로
+        const APP_ID_FALLBACK = 'default-app-id';  // 라이브 사이트(GitHub Pages)와 동일한 원래 경로
         const appId = (typeof __app_id !== 'undefined' && __app_id) ? __app_id : APP_ID_FALLBACK;
         console.log('[TVCF] Firestore 경로 appId =', appId, '| 데이터가 안 보이면 이 값이 데이터를 저장한 경로와 일치하는지 확인하세요');
         let currentUser = null; let archiveData = [];
@@ -1092,7 +1092,7 @@
             loadArchiveData();
         };
         // 이전에 사용자가 고른 경로가 있으면 우선 적용
-        try { const forced = localStorage.getItem('tvcf_forced_appid'); if (forced) window.currentAppId = forced; } catch(e){}
+        try { const forced = localStorage.getItem('tvcf_forced_appid'); if (forced === 'tvcf-941bf-app') localStorage.removeItem('tvcf_forced_appid'); else if (forced) window.currentAppId = forced; } catch(e){}
 
 
         let _archiveUnsub = null;
@@ -1350,7 +1350,6 @@
                         </div>
                     </div>`;
             });
-            if (filtered.length > maxItems) gridHTML += `<div class="text-center py-10 text-gray-500 text-xs font-bold tracking-widest uppercase bg-[#0a0a0a] rounded-2xl border border-gray-800">더 많은 결과를 보려면 검색어를 구체적으로 입력해주세요 (최대 ${maxItems}개 캠페인 표시중)</div>`;
             if (grid) { grid.innerHTML = gridHTML; window.applyReveals(grid); window.renderMoreBtn('archive-more', '_archiveShown', window._archiveTotal, slicedData.length, window.renderArchiveGrid); window.renderArchiveDashboard(); }
         };
         document.getElementById('archive-search').addEventListener('input', window.debounce(window.renderArchiveGrid, 300));
@@ -1566,7 +1565,6 @@
                         <div class="mt-3 flex flex-col pl-1"><span class="text-[10px] text-gray-500 font-bold mb-1 tracking-widest uppercase">${item.brand}</span><span class="text-xs font-bold text-gray-300 truncate">${displayTags}</span></div>
                     </div>`;
             });
-            if (allImages.length > maxImages) gridHTML += `<div class="col-span-full w-full text-center py-10 text-gray-500 text-xs font-bold tracking-widest uppercase bg-[#0a0a0a] rounded-xl border border-gray-800">최대 ${maxImages}개의 이미지만 표시중입니다. (검색어와 필터를 활용해 보세요)</div>`;
             if (grid) { grid.innerHTML = gridHTML; window.applyReveals(grid); window.renderMoreBtn('visual-more', '_visualShown', window._visualTotal, slicedImages.length, window.renderVisualGrid); }
         };
         document.getElementById('visual-search').addEventListener('input', window.debounce(window.renderVisualGrid, 300));
@@ -1580,7 +1578,6 @@
             slicedData.forEach(ad => {
                 gridHTML += `<div class="render-optimize bg-[#090909] p-8 md:p-12 rounded-2xl border border-gray-800 hover:border-cyan-500/50 transition duration-300 shadow-xl text-left"><h3 class="text-cyan-400 font-black text-lg md:text-xl mb-6 tracking-wide text-left">${ad.brand}</h3><div class="text-left text-gray-300 font-sans text-sm md:text-base leading-loose whitespace-pre-wrap tracking-wide font-normal">${window.cleanCopyText(ad.manifesto_copy)}</div></div>`;
             });
-            if (filtered.length > maxItems) gridHTML += `<div class="col-span-full w-full text-center py-10 text-gray-500 text-xs font-bold tracking-widest uppercase bg-[#0a0a0a] rounded-2xl border border-gray-800">최대 ${maxItems}개 표시중</div>`;
             if (grid) { grid.innerHTML = gridHTML; window.applyReveals(grid); window.renderMoreBtn('copy-more', '_copyShown', window._copyTotal, slicedData.length, window.renderCopyGrid); }
         };
         document.getElementById('copy-search').addEventListener('input', window.debounce(window.renderCopyGrid, 300));
