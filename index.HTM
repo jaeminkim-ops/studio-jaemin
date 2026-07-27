@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>당신의 모든 독립에, 메리츠 파트너스 — 랜딩 시안 v1</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css" rel="stylesheet">
+<style>
+:root{
+  --navy:#0B1A33;
+  --navy-2:#152A4A;
+  --red:#E4002B;
+  --red-dk:#B80022;
+  --cream:#F6F3EE;
+  --line:#E2DDD5;
+  --gray:#6B7280;
+  --gray-2:#9CA3AF;
+  --white:#fff;
+  --radius:14px;
+  --maxw:440px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  background:#DCD8D1; color:var(--navy); line-height:1.5;
+  letter-spacing:-0.02em; -webkit-font-smoothing:antialiased;
+}
+.stage{max-width:var(--maxw);margin:0 auto;background:var(--cream);min-height:100vh;position:relative;overflow:hidden;box-shadow:0 0 40px rgba(0,0,0,.12)}
+img,svg{display:block;max-width:100%}
+
+/* ============ 공통 ============ */
+.sec{padding:56px 24px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--red);margin-bottom:12px}
+.eyebrow.on-dark{color:#FF6B85}
+h2.sec-t{font-size:26px;font-weight:800;line-height:1.35;letter-spacing:-0.035em;margin-bottom:10px}
+.sec-sub{font-size:14px;color:var(--gray);line-height:1.65}
+.ph{background:linear-gradient(135deg,#D8D2C8 0%,#C9C2B6 100%);display:flex;align-items:center;justify-content:center;color:#7A7267;font-size:11px;font-weight:600;letter-spacing:.02em;text-align:center;border-radius:var(--radius);padding:8px}
+
+/* ============ 헤더 ============ */
+.gnb{position:sticky;top:0;z-index:60;background:rgba(11,26,51,.92);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;padding:12px 20px}
+.gnb .logo{font-size:14px;font-weight:800;color:#fff;letter-spacing:-.03em}
+.gnb .logo b{color:var(--red)}
+.gnb .g-cta{font-size:12px;font-weight:700;color:#fff;background:var(--red);padding:8px 14px;border-radius:100px;text-decoration:none}
+
+/* ============ HERO ============ */
+.hero{background:var(--navy);color:#fff;padding:44px 24px 36px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;width:320px;height:320px;right:-140px;top:-80px;border-radius:50%;background:radial-gradient(circle,rgba(228,0,43,.32) 0%,rgba(228,0,43,0) 70%)}
+.hero-in{position:relative;z-index:2}
+.hero-kicker{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.1em;border:1px solid rgba(255,255,255,.35);border-radius:100px;padding:6px 12px;margin-bottom:20px;color:#fff}
+.hero h1{font-size:32px;font-weight:800;line-height:1.3;letter-spacing:-.04em;margin-bottom:16px}
+.hero h1 .hl{color:#fff;background:linear-gradient(transparent 62%,var(--red) 62%);padding:0 2px}
+.hero p.lead{font-size:14px;color:rgba(255,255,255,.72);line-height:1.7}
+.manifesto{margin-top:26px;padding:20px 18px;border-left:3px solid var(--red);background:rgba(255,255,255,.05);border-radius:0 10px 10px 0}
+.manifesto p{font-size:14.5px;line-height:1.85;color:rgba(255,255,255,.9);font-weight:500}
+.manifesto p + p{margin-top:14px}
+.manifesto .last{font-weight:800;color:#fff;font-size:16px}
+.hero-visual{margin-top:24px;height:190px}
+
+/* ============ USP 띠 ============ */
+.usp{background:var(--navy-2);color:#fff;padding:18px 20px 14px}
+.usp-row{display:flex;justify-content:space-between;gap:8px;text-align:center}
+.usp-row > div{flex:1}
+.usp-row .n{font-size:15px;font-weight:800;line-height:1.35;display:block}
+.usp-row .n em{font-style:normal;color:#FF6B85}
+.usp-row .l{font-size:10.5px;color:rgba(255,255,255,.6);margin-top:5px;display:block;line-height:1.4}
+.usp .disc{margin-top:12px;font-size:9.5px;color:rgba(255,255,255,.45);line-height:1.55;text-align:center;letter-spacing:-.01em}
+
+/* ============ 탭 ============ */
+.tabs-wrap{background:var(--cream)}
+.tabs{display:flex;gap:6px;background:#EBE7E0;padding:5px;border-radius:100px;margin-bottom:24px}
+.tab{flex:1;border:0;background:transparent;font-family:inherit;font-size:13px;font-weight:700;color:var(--gray);padding:11px 4px;border-radius:100px;cursor:pointer;transition:.2s;letter-spacing:-.03em}
+.tab[aria-selected="true"]{background:var(--navy);color:#fff;box-shadow:0 3px 10px rgba(11,26,51,.22)}
+.panel{display:none;animation:fade .3s ease}
+.panel.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.panel .tag{display:inline-block;font-size:11px;font-weight:800;color:var(--red);background:#FDE7EB;padding:5px 10px;border-radius:6px;margin-bottom:12px}
+.panel h3{font-size:23px;font-weight:800;line-height:1.4;letter-spacing:-.04em;margin-bottom:12px}
+.panel h3 .u{border-bottom:3px solid var(--red);padding-bottom:1px}
+.panel .body{font-size:14px;color:#3F4A5A;line-height:1.75}
+.panel .body strong{font-weight:800;color:var(--navy)}
+.panel .card-visual{height:150px;margin:20px 0 8px}
+.panel .bridge{margin-top:18px;padding:14px 16px;background:#fff;border:1px solid var(--line);border-radius:12px;font-size:13.5px;font-weight:700;line-height:1.6;color:var(--navy)}
+.panel .bridge .arrow{color:var(--red);font-weight:800}
+
+/* ============ STEP ============ */
+.steps{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.step{display:flex;gap:16px;align-items:flex-start;padding:20px 0}
+.step + .step{border-top:1px dashed var(--line)}
+.step .ic{flex:0 0 46px;height:46px;border-radius:12px;background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:20px}
+.step .no{font-size:10.5px;font-weight:800;color:var(--red);letter-spacing:.1em;display:block;margin-bottom:3px}
+.step h4{font-size:16px;font-weight:800;letter-spacing:-.03em;margin-bottom:4px}
+.step p{font-size:12.5px;color:var(--gray);line-height:1.6}
+
+/* ============ 솔루션 ============ */
+.solution{background:var(--navy);color:#fff}
+.solution h2.sec-t{color:#fff}
+.rtb{margin:22px 0 26px;padding:22px 20px;background:linear-gradient(135deg,var(--red) 0%,var(--red-dk) 100%);border-radius:var(--radius)}
+.rtb .q{font-size:12px;font-weight:700;color:rgba(255,255,255,.75);margin-bottom:8px}
+.rtb .a{font-size:20px;font-weight:800;line-height:1.45;letter-spacing:-.035em;color:#fff}
+.diff{display:grid;gap:10px}
+.diff .item{display:flex;gap:14px;align-items:center;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:16px}
+.diff .item .k{flex:0 0 auto;font-size:22px}
+.diff .item .t{font-size:15px;font-weight:800;letter-spacing:-.03em}
+.diff .item .d{font-size:12px;color:rgba(255,255,255,.6);margin-top:3px;line-height:1.55}
+.solution .note{margin-top:16px;font-size:10.5px;color:rgba(255,255,255,.4);line-height:1.6}
+
+/* ============ 후기 ============ */
+.proof{background:var(--cream)}
+.rv{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-top:12px}
+.rv .stars{color:var(--red);font-size:12px;letter-spacing:2px;margin-bottom:10px}
+.rv q{display:block;font-size:14.5px;line-height:1.75;font-weight:600;color:var(--navy);quotes:none}
+.rv .who{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.rv .who .av{width:32px;height:32px;border-radius:50%;background:#E5E0D8;flex:0 0 32px}
+.rv .who .nm{font-size:12px;font-weight:700}
+.rv .who .sub{font-size:11px;color:var(--gray-2)}
+
+/* ============ 클로징 폼 ============ */
+.closing{background:var(--navy-2);color:#fff;padding-bottom:120px}
+.closing h2.sec-t{color:#fff;text-align:center}
+.closing .sec-sub{color:rgba(255,255,255,.65);text-align:center}
+.bene{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;margin:18px 0 24px}
+.bene span{font-size:11.5px;font-weight:700;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);padding:7px 12px;border-radius:100px}
+form{background:#fff;border-radius:16px;padding:22px 20px}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:12px;font-weight:700;color:var(--navy);margin-bottom:7px}
+.fg label i{color:var(--red);font-style:normal}
+.fg input,.fg select{width:100%;font-family:inherit;font-size:14.5px;padding:14px 14px;border:1.5px solid var(--line);border-radius:10px;background:#FAF9F7;color:var(--navy);letter-spacing:-.02em}
+.fg input:focus,.fg select:focus{outline:0;border-color:var(--navy);background:#fff}
+.fg input::placeholder{color:#B8B2A8}
+.seg{display:flex;gap:6px}
+.seg label{flex:1;margin:0}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg .chip{display:block;text-align:center;font-size:13px;font-weight:700;padding:12px 2px;border:1.5px solid var(--line);border-radius:10px;background:#FAF9F7;color:var(--gray);cursor:pointer;transition:.15s}
+.seg input:checked + .chip{border-color:var(--navy);background:var(--navy);color:#fff}
+.agree{margin:16px 0 6px;padding-top:14px;border-top:1px solid var(--line)}
+.agree .row{display:flex;align-items:flex-start;gap:9px;font-size:12px;color:#4B5563;line-height:1.55}
+.agree .row + .row{margin-top:9px}
+.agree input[type=checkbox]{margin-top:2px;width:16px;height:16px;accent-color:var(--red);flex:0 0 16px}
+.agree a{color:var(--navy);text-decoration:underline;font-weight:600}
+.agree .opt{color:var(--gray-2);font-weight:600}
+.submit{width:100%;margin-top:16px;font-family:inherit;font-size:16px;font-weight:800;color:#fff;background:var(--red);border:0;border-radius:12px;padding:17px;cursor:pointer;letter-spacing:-.03em;box-shadow:0 6px 18px rgba(228,0,43,.3)}
+.submit:active{transform:translateY(1px)}
+.form-foot{margin-top:12px;font-size:10.5px;color:var(--gray-2);text-align:center;line-height:1.6}
+
+/* ============ 플로팅 배너 ============ */
+.floating{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:var(--maxw);z-index:70;background:rgba(11,26,51,.97);backdrop-filter:blur(12px);padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:12px;box-shadow:0 -6px 24px rgba(0,0,0,.22);transition:transform .3s}
+.floating.hide{transform:translateX(-50%) translateY(110%)}
+.floating .txt{flex:1;min-width:0}
+.floating .txt .l1{font-size:11px;color:#FF8FA3;font-weight:700;margin-bottom:2px}
+.floating .txt .l2{font-size:14px;font-weight:800;color:#fff;letter-spacing:-.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.floating .fbtn{flex:0 0 auto;font-size:14px;font-weight:800;color:#fff;background:var(--red);border:0;border-radius:10px;padding:13px 18px;cursor:pointer;font-family:inherit;letter-spacing:-.03em;text-decoration:none}
+
+/* ============ 푸터 ============ */
+footer{background:#08131F;color:rgba(255,255,255,.4);padding:26px 24px 100px;font-size:10.5px;line-height:1.75}
+footer .fl{font-size:12px;font-weight:800;color:rgba(255,255,255,.7);margin-bottom:10px}
+footer p + p{margin-top:7px}
+
+/* ============ 검토 노트 ============ */
+.notebtn{position:fixed;right:16px;bottom:96px;z-index:90;background:#111827;color:#fff;border:0;border-radius:100px;font-family:inherit;font-size:11.5px;font-weight:700;padding:11px 15px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+body.notes-on .note-pin{display:inline-flex}
+.note-pin{display:none;align-items:center;gap:5px;font-size:10.5px;font-weight:700;background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;border-radius:6px;padding:5px 8px;margin:8px 0;line-height:1.5;text-align:left;letter-spacing:-.01em}
+.note-pin.warn{background:#FEE2E2;color:#991B1B;border-color:#FCA5A5}
+.note-pin.ok{background:#DCFCE7;color:#166534;border-color:#86EFAC}
+.note-block{display:none}
+body.notes-on .note-block{display:block}
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <!-- GNB -->
+  <div class="gnb">
+    <div class="logo">meritz <b>partners</b></div>
+    <a href="#apply" class="g-cta">무료 지원하기</a>
+  </div>
+
+  <!-- ========== Section 1. 브랜딩 ========== -->
+  <section class="hero">
+    <div class="hero-in">
+      <div class="hero-kicker">MERITZ PARTNERS</div>
+      <h1>당신의 모든 독립에,<br><span class="hl">메리츠 파트너스</span></h1>
+      <p class="lead">부모님으로부터, 월급으로부터, 나이로부터.<br>지금 당신의 독립을 시작하세요.</p>
+
+      <div class="note-pin warn">⚠ 원안 "완벽하게 자립할 시간" → 단정 표현 완화. 컴플 §3 '단정→여지' 원칙</div>
+
+      <div class="manifesto">
+        <p>어른이 된다는 건,<br>인생에서 거쳐야 할<br>여러 독립을 거쳤다는 것</p>
+        <p>하지만<br>홀로 선다는 건,<br>곁에 누군가 없다는 건<br>누구나 두려우니까</p>
+        <p class="last">독립이 필요한 모든 순간,<br>당신 곁에 메리츠 파트너스</p>
+      </div>
+
+      <div class="ph hero-visual" style="background:linear-gradient(135deg,#1B3157,#0B1A33);color:rgba(255,255,255,.45);border:1px dashed rgba(255,255,255,.2)">
+        KV 영상 / 이미지 영역<br>(세대별 '독립의 순간' 3컷 시퀀스)
+      </div>
+    </div>
+  </section>
+
+  <!-- USP 띠 -->
+  <div class="usp">
+    <div class="usp-row">
+      <div><span class="n">응시료<br><em>전액 지원</em></span><span class="l">보험자격증 시험</span></div>
+      <div><span class="n">1:1<br><em>전담 멘토</em></span><span class="l">시작부터 끝까지</span></div>
+      <div><span class="n">첫달 월 수입<br><em>평균 150만원</em></span><span class="l">최근 3개월 실적자 기준</span></div>
+    </div>
+    <p class="disc">*24.8~25.7 수익자 기준, 수익은 보험체결 후 발생, 개인차 있음</p>
+  </div>
+  <div style="padding:0 24px">
+    <div class="note-pin ok">✓ 150만원 = 하단 고정 USP 띠 형태 (시드머니편 승인 방식). 고지문구 + 기준 단서 병기 완료. 후반 단독 소구로 쓰지 않음</div>
+  </div>
+
+  <!-- ========== Section 2. 공감 (탭) ========== -->
+  <section class="sec tabs-wrap">
+    <div class="eyebrow">EMPATHY</div>
+    <h2 class="sec-t">당신의 '독립'은<br>무엇인가요?</h2>
+    <p class="sec-sub">세대마다 독립의 순간은 다릅니다.<br>당신의 구간을 골라보세요.</p>
+
+    <div style="margin-top:24px">
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" aria-selected="true" data-seg="2030">2030</button>
+        <button class="tab" role="tab" aria-selected="false" data-seg="3040">3040</button>
+        <button class="tab" role="tab" aria-selected="false" data-seg="4050">4050</button>
+      </div>
+
+      <!-- 2030 -->
+      <div class="panel on" id="p-2030">
+        <span class="tag">보험독립</span>
+        <h3>내 보험인데,<br><span class="u">내가 제일 모른다</span>는 것</h3>
+        <div class="body">
+          부모님이 넣어주신 보험, 무슨 보장인지 설명할 수 있으세요?<br><br>
+          내가 모르면 남이 골라줍니다. 그리고 그 과정에서 나가는 수수료는 <strong>중간에 있는 사람</strong> 몫이죠.<br><br>
+          <strong>보험자격증</strong>을 따면, 앞으로 가입하는 보험을 내가 알고 내가 고를 수 있습니다.
+          그리고 그때 나가던 수수료가 <strong>내 쪽으로</strong> 돌아옵니다.
+        </div>
+        <div class="ph card-visual">2030 비주얼 — '내 보험 서류 앞에서 멈춘 손'</div>
+        <div class="bridge">부모님이 골라준 보험에서 <span class="arrow">→</span> 내가 고르는 보험으로.<br>이게 2030의 <strong>보험독립</strong>입니다.</div>
+        <div class="note-pin warn">⚠ 원안 "내 보험 직접 다이어트하고 수수료까지" → <b>승환계약 이슈로 금지</b>(조용한자격증편 판정). 기존 계약 정리·변경 뉘앙스 전면 삭제하고 <b>'앞으로 가입하는' 신규 가입 프레임</b>으로 전환. '설계사' → '중간에 있는 사람'으로 대체(§1 금지어)</div>
+      </div>
+
+      <!-- 3040 -->
+      <div class="panel" id="p-3040">
+        <span class="tag">월급독립</span>
+        <h3>월급은 오르는데<br><span class="u">왜 안 남을까</span></h3>
+        <div class="body">
+          월급이 스쳐 지나간다고 느낀 적 있으세요?<br><br>
+          문제는 액수가 아니라 <strong>수입이 하나뿐인 구조</strong>인 경우가 많습니다. 시간을 더 넣어야 돈이 늘어나는 구조라면, 늘릴 수 있는 시간에 한계가 있으니까요.<br><br>
+          <strong>보험자격증</strong>은 퇴근 후 내 페이스로 쌓을 수 있는 <strong>두 번째 수입 구조</strong>가 됩니다. 재고도, 사무실도 필요 없습니다.
+        </div>
+        <div class="ph card-visual">3040 비주얼 — '퇴근 후 식탁 위 노트북'</div>
+        <div class="bridge">월급 하나에 기대는 구조에서 <span class="arrow">→</span> 내가 만든 두 번째 통장으로.<br>이게 3040의 <strong>월급독립</strong>입니다.</div>
+        <div class="note-pin">비교 대상을 직군이 아니라 <b>'수입 구조'</b>로 잡음 (§1-2 직군 비하 금지 대안 프레이밍). "몸 쓰는 일 vs 머리 쓰는 일" 구도 미사용</div>
+      </div>
+
+      <!-- 4050 -->
+      <div class="panel" id="p-4050">
+        <span class="tag">노후독립</span>
+        <h3>은퇴 후에도<br><span class="u">할 수 있는 일</span>이 있을까</h3>
+        <div class="body">
+          회사를 나오면 내 커리어가 끝나는 걸까, 한 번쯤 생각해보셨을 겁니다.<br><br>
+          하지만 지금까지 쌓은 <strong>사람과 신뢰</strong>는 회사를 나와도 남습니다. 그게 이 일에서 가장 큰 자산이라고들 하죠.<br><br>
+          <strong>보험자격증</strong>은 정해진 정년이 없는 자격입니다. 내 속도로, 내가 원하는 만큼 계속할 수 있는 <strong>제2의 직업</strong>이 될 수 있습니다.
+        </div>
+        <div class="ph card-visual">4050 비주얼 — '오래된 명함 지갑'</div>
+        <div class="bridge">회사가 정해준 정년에서 <span class="arrow">→</span> 내가 정하는 속도로.<br>이게 4050의 <strong>노후독립</strong>입니다.</div>
+        <div class="note-pin warn">⚠ 원안 "나이 제한 없이, 평생 일하는" → 단정 표현. "정해진 정년이 없는" + "될 수 있습니다"로 여지 확보. <b>'정년 없음'은 지식파일 미확인 → 광고주 확인 필요</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP -->
+  <section class="sec steps">
+    <div class="eyebrow">HOW TO START</div>
+    <h2 class="sec-t">당신의 독립,<br>이렇게 시작하세요</h2>
+    <div style="margin-top:16px">
+      <div class="step">
+        <div class="ic">📝</div>
+        <div><span class="no">STEP 01</span><h4>메리츠 파트너스 지원하기</h4><p>이름·연락처만 남기면 1:1 전담 멘토가 배정됩니다.</p></div>
+      </div>
+      <div class="step">
+        <div class="ic">🎓</div>
+        <div><span class="no">STEP 02</span><h4>교육 이수 후 보험자격증 획득</h4><p>무료 온라인 강의 12시간. 시험 응시료는 전액 지원됩니다.</p></div>
+      </div>
+      <div class="step">
+        <div class="ic">💰</div>
+        <div><span class="no">STEP 03</span><h4>보험계약 체결 및 수익 발생</h4><p>내가 알고 고른 보험부터. 수익은 보험계약 체결 후 발생합니다.</p></div>
+      </div>
+    </div>
+    <div class="note-pin">교육 12시간 / 합격률 60~70% (비딩자료 25.11). 합격률은 <b>시안에서 미노출</b> — 단정 리스크 대비 소구력 낮음. 노출 원하면 알려주세요</div>
+  </section>
+
+  <!-- ========== Section 3. 솔루션 ========== -->
+  <section class="sec solution">
+    <div class="eyebrow on-dark">WHY MERITZ</div>
+    <h2 class="sec-t">왜 시작해야 하는가,<br>먼저 말씀드립니다</h2>
+    <p class="sec-sub" style="color:rgba(255,255,255,.6)">혜택보다 이유가 먼저입니다.</p>
+
+    <div class="rtb">
+      <div class="q">메리츠 파트너스의 핵심은 하나입니다</div>
+      <div class="a">직접 공부해서 내가 알고 가입하면,<br>중간에서 빠져나가던 수수료가<br>나에게 옵니다</div>
+    </div>
+
+    <div class="note-block">
+      <div class="note-pin ok">✓ P1 핵심 RTB 단일 수렴 + P3 순서 준수(수익 이유 → 지원 혜택). '설계사'라는 단어 없이 동일 메시지 전달</div>
+    </div>
+
+    <div class="diff">
+      <div class="item"><div class="k">🎫</div><div><div class="t">응시료 전액 지원</div><div class="d">보험자격증 시험 응시료를 전액 지원합니다</div></div></div>
+      <div class="item"><div class="k">🧑‍🏫</div><div><div class="t">1:1 전담 멘토</div><div class="d">지원부터 자격 취득까지 담당 멘토가 함께합니다</div></div></div>
+      <div class="item"><div class="k">📚</div><div><div class="t">무료 온라인 강의 (12시간)</div><div class="d">출퇴근 시간에도 들을 수 있습니다</div></div></div>
+      <div class="item"><div class="k">🎁</div><div><div class="t">전 강의 수강 완료 시 20만원 리워드</div><div class="d">자격 취득 여부와 무관하게 수강 완료 기준입니다</div></div></div>
+    </div>
+
+    <div class="note-block">
+      <div class="note-pin warn">⚠ 원안 <b>"초기자본 0원" 삭제</b> — 지식파일에 근거 없는 미확인 혜택. §2 '미검증 혜택 단정 금지'. 사실 확인되면 복원 가능</div>
+      <div class="note-pin">'25.10 기준 파트너스 1만명 · 시장 1위'(비딩자료 25.11)는 신뢰 소구로 강력하나 <b>26년 기준 미확인</b>이라 미노출. 최신 수치 확보 시 이 섹션 상단에 추가 권장</div>
+    </div>
+
+    <p class="note">수익은 보험계약 체결 후 발생하며 개인차가 있습니다. 혜택 내용은 운영 기준에 따라 변경될 수 있습니다.</p>
+  </section>
+
+  <!-- ========== Section 4. 증명 ========== -->
+  <section class="sec proof">
+    <div class="eyebrow">REAL STORY</div>
+    <h2 class="sec-t">먼저 독립한<br>사람들의 이야기</h2>
+    <p class="sec-sub">지금 활동 중인 파트너스가 직접 남긴 이야기입니다.</p>
+
+    <div class="note-pin warn" style="margin-top:14px">⚠ 아래 3건은 <b>PM팀 작성 예시 문구(미확인)</b>. 실제 파트너스 후기로 반드시 교체해야 함 — 창작 후기 게재는 표시광고법 리스크. 광고주에 실제 후기 요청 필요</div>
+
+    <div class="rv">
+      <div class="stars">★★★★★</div>
+      <q>내 보험이 무슨 보장인지 처음 알게 됐어요. 앞으로 가입할 건 제가 알고 고르게 됐고, 수수료까지 챙기니까 이제야 어른이 된 기분입니다.</q>
+      <div class="who"><div class="av"></div><div><div class="nm">20대 직장인</div><div class="sub">보험독립 · 2030</div></div></div>
+    </div>
+
+    <div class="rv">
+      <div class="stars">★★★★★</div>
+      <q>월급만 보면 늘 한숨이 나왔는데, 퇴근 후 짬짬이 쌓은 두 번째 통장이 생겼습니다. 제 첫 달은 이 정도 나왔어요.</q>
+      <div class="who"><div class="av"></div><div><div class="nm">30대 N잡러</div><div class="sub">월급독립 · 3040</div></div></div>
+    </div>
+
+    <div class="rv">
+      <div class="stars">★★★★★</div>
+      <q>은퇴하면 끝인 줄 알았는데, 30년 쌓은 사람들이 그대로 자산이 되더군요. 제 속도대로 계속할 수 있는 일이 생겼습니다.</q>
+      <div class="who"><div class="av"></div><div><div class="nm">50대 · 퇴직 후 재시작</div><div class="sub">노후독립 · 4050</div></div></div>
+    </div>
+
+    <div class="note-pin">후기 화법을 모두 <b>전언·개인 경험형</b>으로 처리("제 첫 달은 이 정도 나왔어요"). §3 심사 선타기 원칙</div>
+  </section>
+
+  <!-- ========== Section 5. 클로징 ========== -->
+  <section class="sec closing" id="apply">
+    <div class="eyebrow on-dark" style="text-align:center">START NOW</div>
+    <h2 class="sec-t">메리츠 파트너스와<br>당신만의 독립을</h2>
+    <p class="sec-sub">1분이면 신청이 끝납니다.<br>담당 멘토가 순차적으로 연락드립니다.</p>
+
+    <div class="bene">
+      <span>응시료 전액 지원</span><span>1:1 전담 멘토</span><span>무료 강의</span><span>20만원 리워드</span>
+    </div>
+
+    <form onsubmit="event.preventDefault();alert('시안입니다 — 실제 전송되지 않습니다.');">
+      <div class="fg">
+        <label for="nm">이름 <i>*</i></label>
+        <input id="nm" type="text" placeholder="실명을 입력해주세요" required>
+      </div>
+      <div class="fg">
+        <label for="tel">연락처 <i>*</i></label>
+        <input id="tel" type="tel" inputmode="numeric" placeholder="010-0000-0000" required>
+      </div>
+      <div class="fg">
+        <label>연령대 <i>*</i></label>
+        <div class="seg">
+          <label><input type="radio" name="age" value="2030" checked><span class="chip">20~30대</span></label>
+          <label><input type="radio" name="age" value="3040"><span class="chip">30~40대</span></label>
+          <label><input type="radio" name="age" value="4050"><span class="chip">40~50대</span></label>
+        </div>
+      </div>
+
+      <div class="agree">
+        <div class="row">
+          <input type="checkbox" id="a1" required>
+          <label for="a1" style="font-weight:500;margin:0;font-size:12px;line-height:1.55">[필수] <a href="#">개인정보 수집·이용</a> 및 <a href="#">보험 모집 목적 연락</a>에 동의합니다.</label>
+        </div>
+        <div class="row">
+          <input type="checkbox" id="a2">
+          <label for="a2" style="font-weight:500;margin:0;font-size:12px;line-height:1.55"><span class="opt">[선택]</span> 마케팅 정보 수신에 동의합니다.</label>
+        </div>
+      </div>
+
+      <button class="submit" type="submit">무료로 지원하기</button>
+      <p class="form-foot">보험자격증 시험 응시료는 전액 지원됩니다.<br>수익은 보험계약 체결 후 발생하며 개인차가 있습니다.</p>
+    </form>
+
+    <div class="note-pin" style="margin-top:16px">필드 3개 + 필수동의 1개로 마찰 최소화. 연령대는 <b>URL 파라미터(?seg=)로 자동 선택</b>되어 실제 입력 부담 없음. 동의 문구는 <b>법무 검토 전 초안</b>이며 실제 문구는 메리츠화재 표준 약관 적용 필요</div>
+  </section>
+
+  <footer>
+    <div class="fl">meritz partners</div>
+    <p>본 페이지는 메리츠화재 보험 판매 파트너 모집 안내 페이지입니다.</p>
+    <p>수익은 보험계약 체결 후 발생하며 개인의 활동량에 따라 차이가 있습니다.<br>*첫달 월 수입 평균 150만원: 24.8~25.7 수익자 기준, 최근 3개월 실적자 기준, 개인차 있음</p>
+    <p>본 페이지의 일부 이미지는 AI로 생성되었습니다.</p>
+    <p style="margin-top:14px;color:rgba(255,255,255,.25)">랜딩 시안 v1 · PTBWA PM팀 · 2026-07-27 · 내부 검토용</p>
+  </footer>
+
+  <!-- 플로팅 DB 배너 -->
+  <div class="floating" id="float">
+    <div class="txt">
+      <div class="l1" id="fl1">지금 당신의 독립을</div>
+      <div class="l2" id="fl2">응시료 전액 지원 · 1:1 멘토</div>
+    </div>
+    <a href="#apply" class="fbtn">지원하기</a>
+  </div>
+
+</div>
+
+<button class="notebtn" id="notebtn">🔍 검토 노트 켜기</button>
+
+<script>
+// 탭
+var segCopy = {
+  '2030': ['부모님 보험에서 독립', '내가 알고 고르는 보험'],
+  '3040': ['월급 하나에서 독립', '퇴근 후 두 번째 통장'],
+  '4050': ['정해진 정년에서 독립', '내 속도로 하는 제2의 직업']
+};
+var tabs = document.querySelectorAll('.tab');
+function setSeg(seg){
+  tabs.forEach(function(t){
+    var on = t.dataset.seg === seg;
+    t.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('on'); });
+  var el = document.getElementById('p-' + seg);
+  if(el) el.classList.add('on');
+  var c = segCopy[seg];
+  if(c){ document.getElementById('fl1').textContent = c[0]; document.getElementById('fl2').textContent = c[1]; }
+  var r = document.querySelector('input[name=age][value="'+seg+'"]');
+  if(r) r.checked = true;
+}
+tabs.forEach(function(t){ t.addEventListener('click', function(){ setSeg(t.dataset.seg); }); });
+
+// URL 파라미터 프리셋 (?seg=3040)
+var q = new URLSearchParams(location.search).get('seg');
+setSeg(['2030','3040','4050'].indexOf(q) > -1 ? q : '2030');
+
+// 플로팅 배너 — 클로징 폼 진입 시 숨김
+var fo = document.getElementById('float');
+var target = document.getElementById('apply');
+if('IntersectionObserver' in window){
+  new IntersectionObserver(function(e){
+    fo.classList.toggle('hide', e[0].isIntersecting);
+  }, {threshold: .25}).observe(target);
+}
+
+// 검토 노트 토글
+var nb = document.getElementById('notebtn');
+nb.addEventListener('click', function(){
+  var on = document.body.classList.toggle('notes-on');
+  nb.textContent = on ? '✕ 검토 노트 끄기' : '🔍 검토 노트 켜기';
+});
+</script>
+</body>
+</html>
