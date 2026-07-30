@@ -167,6 +167,25 @@ b,strong{font-weight:700}
 .ic p{font-size:14px;font-weight:800;color:var(--red);line-height:1.42;letter-spacing:-0.04em}
 .i1 img{width:41px}.i2 img{width:40px}.i3 img{width:34px}
 
+/* ============ 플로팅 CTA ============ */
+.float{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));
+  width:307px;max-width:calc(100vw - 40px);height:40px;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  border-radius:18px;background:linear-gradient(120deg,#FC726E 0%,#ED3030 100%);
+  color:#fff;font-size:15px;font-weight:800;letter-spacing:-0.045em;text-decoration:none;
+  box-shadow:0 8px 22px rgba(0,0,0,.18),0 4px 14px rgba(237,48,48,.26),
+             inset 0 0 0 1px rgba(255,255,255,.30);z-index:50;
+  transform:translate(-50%,0);animation:floatIn .5s cubic-bezier(.2,.9,.25,1) both;
+  will-change:transform}
+@keyframes floatIn{from{transform:translate(-50%,130%);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+.float:active{filter:brightness(.96)}
+.float .arw{display:inline-block;font-size:16px;animation:nudge 1.8s ease-in-out infinite}
+.float-pad{height:calc(72px + env(safe-area-inset-bottom,0px));background:var(--footer)}
+@media (prefers-reduced-motion:reduce){
+  .float{animation:none}
+  .float .arw{animation:none}
+}
+
 /* ============ FOOTER ============ */
 .disc{background:#fff;padding:30px 20px 34px;text-align:center;border-top:1px solid #F1F1F1}
 .disc .bi{font-size:13.5px;font-weight:800;color:var(--red);margin-bottom:12px}
@@ -208,7 +227,7 @@ b,strong{font-weight:700}
     </div>
 
     <div class="cta-wrap rv" style="--d:.1s">
-      <a href="#" class="cta">지금 보험 독립하기 <span class="arw">›</span></a>
+      <a href="https://meritzpartners.com/?advtMdiaDivVal=site&amp;advtMdiaTpDivVal=main&amp;advtMdiaDtlDivVal=banner-top" class="cta">지금 보험 독립하기 <span class="arw">›</span></a>
       <p class="cta-note">지금 시작하면 <b>최대 200,000원 혜택</b></p>
     </div>
   </section>
@@ -305,7 +324,7 @@ b,strong{font-weight:700}
     <h2 class="h2 rv" style="--d:.06s">메리츠 파트너스와 보험 독립!<br>첫달 평균 150만원까지!</h2>
     <p class="lead rv" style="--d:.12s">내 보험 점검부터 가족 보험까지 보험료 절감!<br>보험 자격증으로 평생 부수입까지!</p>
     <div class="cta-wrap rv" style="--d:.16s">
-      <a href="#" class="cta">지금 보험 독립하기 <span class="arw">›</span></a>
+      <a href="https://meritzpartners.com/?advtMdiaDivVal=site&amp;advtMdiaTpDivVal=main&amp;advtMdiaDtlDivVal=banner-top" class="cta">지금 보험 독립하기 <span class="arw">›</span></a>
       <p class="cta-note">지금 시작하면 <b>최대 200,000원 혜택</b></p>
     </div>
     <div class="icons">
@@ -324,7 +343,11 @@ b,strong{font-weight:700}
     <h5>메리츠화재</h5>
     <p>서울특별시 강남구 강남대로 382 메리츠타워<br>사업자등록번호 116-81-03752<br>대표번호 1566-7711<br>©meritz partners All Rights Reserved.</p>
   </footer>
+  <div class="float-pad"></div>
 </div>
+
+<!-- 플로팅 CTA -->
+<a href="https://meritzpartners.com/?advtMdiaDivVal=site&amp;advtMdiaTpDivVal=main&amp;advtMdiaDtlDivVal=banner-top" class="float" id="floatCta">메리츠 파트너스와 보험독립 하기 <span class="arw">›</span></a>
 
 <script>
 /* ===== 후기 롤링 ===== */
