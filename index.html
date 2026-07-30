@@ -86,43 +86,47 @@ h2{
 }
 .step__ico img{width:100%;}
 
-/* ---------- 여정 타임라인 ---------- */
-.j{margin-top:34px; position:relative;}
-.j::before{
-  content:''; position:absolute; left:15px; top:8px; bottom:8px; width:2px;
-  background:repeating-linear-gradient(to bottom,var(--red-soft) 0 8px,transparent 8px 16px);
+/* ---------- 여정 : 대화형 말풍선 (D안) ---------- */
+.j{margin-top:30px;}
+.jdiv{display:flex; align-items:center; gap:10px; margin:26px 0 16px;}
+.jdiv:first-child{margin-top:6px;}
+.jdiv::before,.jdiv::after{content:''; flex:1; height:1px; background:#F1DFDC;}
+.jdiv span{
+  font-size:11px; font-weight:800; color:#C4ADA9;
+  letter-spacing:.1em; white-space:nowrap;
 }
-.jstep{position:relative; padding-left:46px; padding-bottom:34px;}
-.jstep:last-child{padding-bottom:0;}
-.jstep__no{
-  position:absolute; left:0; top:2px; width:32px; height:32px; border-radius:50%;
-  background:var(--red); color:#fff; font-weight:800; font-size:14px;
+.row{display:flex; align-items:flex-end; gap:8px; margin-bottom:12px;}
+.row--mz{flex-direction:row-reverse;}
+.av{
+  width:28px; height:28px; border-radius:50%; flex:0 0 auto; margin-bottom:2px;
   display:flex; align-items:center; justify-content:center;
-  box-shadow:0 0 0 5px #fff, 0 0 0 6px #FBD9D6;
+  font-size:11px; font-weight:800;
 }
-.card{border-radius:16px; padding:20px 18px;}
-.card--me{background:#fff; border:1px solid var(--line); box-shadow:0 3px 14px rgba(180,140,135,.09);}
-.card--mz{
-  background:linear-gradient(135deg,var(--red-soft) 0%,var(--red-deep) 62%);
-  color:#fff; margin-top:12px;
+.row--me .av{background:#EDE6E1; color:#8A7C78;}
+.row--mz .av{background:var(--red); color:#fff;}
+.nm{font-size:10.5px; font-weight:800; color:#B9A9A6; margin:0 0 5px 36px;}
+.nm--mz{text-align:right; color:var(--red); margin:0 36px 5px 0;}
+.bub{max-width:84%; padding:15px 16px;}
+.row--me .bub{background:#F4F4F5; border-radius:18px 18px 18px 4px;}
+.row--mz .bub{
+  background:linear-gradient(135deg,var(--red-soft) 0%,var(--red-deep) 70%);
+  color:#fff; border-radius:18px 18px 4px 18px;
 }
+.bub h4{margin:0 0 7px; font-size:15.5px; font-weight:800; letter-spacing:-.03em; line-height:1.4;}
+.bub p{margin:0; font-size:13.5px; line-height:1.7;}
+.row--me .bub p{color:var(--sub);}
+.row--mz .bub p{color:rgba(255,255,255,.95);}
 .tag{
   display:inline-block; font-size:11px; font-weight:800; padding:6px 13px;
   border-radius:99px; margin-bottom:11px; letter-spacing:-.01em; white-space:nowrap;
 }
-.card--me .tag{background:#1A1A1A; color:#fff;}
-.card--mz .tag{background:rgba(255,255,255,.95); color:var(--red-deep);}
-.card h4{margin:0 0 9px; font-size:16px; font-weight:800; letter-spacing:-.03em; line-height:1.4;}
-.card p{margin:0; font-size:13.5px; line-height:1.7;}
-.card--me p{color:var(--sub);}
-.card--mz p{color:rgba(255,255,255,.95);}
+.row--mz .tag{background:rgba(255,255,255,.95); color:var(--red-deep);}
 .chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px;}
 .chip{
   background:#fff; color:var(--red-deep); font-size:12px; font-weight:800;
   padding:9px 14px; border-radius:10px; white-space:nowrap;
 }
 .chip::before{content:'✓ ';}
-.colhead{display:none;}
 .pcbr{display:none;}
 .mobr{display:inline;}
 
@@ -197,26 +201,17 @@ footer b{color:var(--red); font-weight:800; letter-spacing:-.02em;}
   .step small{padding-right:150px;}
   .step__ico{width:120px; height:120px; right:14px; bottom:-4px;}
 
-  /* 여정: 원본처럼 2단 복원 */
-  .j{margin-top:52px;}
-  .j::before{left:50%; margin-left:-1px;}
-  .jstep{
-    padding:0 0 44px; display:grid; gap:0 56px;
-    grid-template-columns:1fr 1fr; align-items:start;
-  }
-  .jstep__no{left:50%; top:44px; margin-left:-16px;}
-  .card--mz{margin-top:0;}
+  /* 여정: 대화형 유지, 폭만 조여 대화 리듬 살림 */
+  .j{margin-top:44px; max-width:620px; margin-left:auto; margin-right:auto;}
+  .bub{max-width:76%; padding:18px 20px;}
+  .bub h4{font-size:18px;}
+  .bub p{font-size:15px;}
+  .jdiv{margin:34px 0 18px;}
+  .av{width:32px; height:32px; font-size:12px;}
+  .nm{margin-left:40px;}
+  .nm--mz{margin-right:40px;}
   .pcbr{display:inline;}
   .mobr{display:none;}
-  .colhead{
-    display:grid; grid-template-columns:1fr 1fr; gap:0 56px; margin-bottom:14px;
-  }
-  .colhead > div{
-    text-align:center; font-size:14px; font-weight:800; padding:14px;
-    border-radius:12px;
-  }
-  .colhead .a{background:#fff; border:1px solid var(--line);}
-  .colhead .b{background:var(--red-deep); color:#fff;}
   .stats{padding:30px 20px;}
   .stats b{font-size:26px;}
   .stats span{font-size:13px;}
@@ -280,21 +275,21 @@ footer b{color:var(--red); font-weight:800; letter-spacing:-.02em;}
     </div>
 
     <div class="j">
-      <div class="colhead" aria-hidden="true">
-        <div class="a">나의 여정에</div>
-        <div class="b">메리츠 파트너스</div>
-      </div>
-
-      <div class="jstep">
-        <span class="jstep__no">1</span>
-        <div class="card card--me">
-          <span class="tag">보험 독립의 시작</span>
+      <div class="jdiv"><span>STEP 1 · 보험 독립의 시작</span></div>
+      <p class="nm">나</p>
+      <div class="row row--me">
+        <span class="av">나</span>
+        <div class="bub">
           <h4>"이제, 남 말고 내가 알아볼래."</h4>
           <p>엄마가 챙겨주던 보험, 설계사가 골라준 보험.<br class="pcbr">
              고마웠지만 이제는 <b class="tx-red">보험 독립할 때.</b><br class="pcbr">
              근데 어디서부터 시작할지 막막하더라고요.</p>
         </div>
-        <div class="card card--mz">
+      </div>
+      <p class="nm nm--mz">메리츠 파트너스</p>
+      <div class="row row--mz">
+        <span class="av">M</span>
+        <div class="bub">
           <span class="tag">첫시작도 함께</span>
           <h4>시작은 쉽게, 전액 지원</h4>
           <p>강의료, 시험비 등 파트너스가 되기 위한<br class="pcbr"> 비용은 전부 무료!</p>
@@ -302,15 +297,18 @@ footer b{color:var(--red); font-weight:800; letter-spacing:-.02em;}
         </div>
       </div>
 
-      <div class="jstep">
-        <span class="jstep__no">2</span>
-        <div class="card card--me">
-          <span class="tag">내 보험 독립부터</span>
+      <div class="jdiv"><span>STEP 2 · 내 보험 독립부터</span></div>
+      <div class="row row--me">
+        <span class="av">나</span>
+        <div class="bub">
           <h4>"내 보험, 태어나서 처음 열어봤어요."</h4>
           <p>펼쳐보니 안 맞는 것도, 비어 있는 것도 있더라고요.<br class="pcbr">
              나를 제일 잘 아는 건 나니까, 나에게 맞게 <b class="tx-red">보험 점검</b></p>
         </div>
-        <div class="card card--mz">
+      </div>
+      <div class="row row--mz">
+        <span class="av">M</span>
+        <div class="bub">
           <span class="tag">보험 독립 헤메지 않도록</span>
           <h4>어렵지 않게, 전담 마크</h4>
           <p>1:1 전담 멘토, 1만 명의 선배 파트너스<br class="pcbr"> 그리고 편하게 물어볼 수 있는 MeAI까지.</p>
@@ -318,15 +316,18 @@ footer b{color:var(--red); font-weight:800; letter-spacing:-.02em;}
         </div>
       </div>
 
-      <div class="jstep">
-        <span class="jstep__no">3</span>
-        <div class="card card--me">
-          <span class="tag">가족 보험 독립까지</span>
+      <div class="jdiv"><span>STEP 3 · 가족 보험 독립까지</span></div>
+      <div class="row row--me">
+        <span class="av">나</span>
+        <div class="bub">
           <h4>"가족 보험도 이제 보험 독립."</h4>
           <p>이제는 내가 엄마와 가족의 보장을 들여다봐요.<br class="pcbr">
              읽을 수 있게 되니, 지켜줄 수도 있더라고요.</p>
         </div>
-        <div class="card card--mz">
+      </div>
+      <div class="row row--mz">
+        <span class="av">M</span>
+        <div class="bub">
           <span class="tag">보험 독립의 끝</span>
           <h4>아끼면, 돈 된다.</h4>
           <p>직접 설계해서 받는 수수료.<br class="pcbr"> 뿌듯함 그 이상의 수익도 벌어요</p>
