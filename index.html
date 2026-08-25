@@ -636,7 +636,11 @@ body{
     applyUrl: '',
     openInNewTab: false,
     maxPopupPerSession: 2,
+    /* 랜딩 후 이 시간이 지나기 전에는 팝업을 띄우지 않습니다.
+       테스트할 때 3초 안에 뒤로가기를 누르면 안 뜨는 게 정상입니다. */
     minEngageMs: 3000,
+    /* 실기기 테스트용. true 로 두면 어떤 트리거가 걸렸는지 / 왜 막혔는지 콘솔에 찍힙니다. */
+    debugPopup: false,
 
     /* 검색바 타이핑 문구 */
     typePhrases: [
@@ -856,11 +860,18 @@ body{
   fitCard(); window.addEventListener('resize', fitCard);
 
   var shownCount = 0, isOpen = false, landedAt = Date.now(), scrollY = 0;
-  function canShow(){
-    return !isOpen && shownCount < CONFIG.maxPopupPerSession && (Date.now() - landedAt) > CONFIG.minEngageMs;
+  var deepScrolled = false;                 /* 콘텐츠를 어느 정도 본 사용자인지 */
+  function dbg(){ if (CONFIG.debugPopup && window.console) console.log.apply(console, ['[popup]'].concat([].slice.call(arguments))); }
+  function blockReason(){
+    if (isOpen) return 'already_open';
+    if (shownCount >= CONFIG.maxPopupPerSession) return 'max_per_session';
+    if (Date.now() - landedAt <= CONFIG.minEngageMs) return 'min_engage';
+    return '';
   }
   function openPop(reason){
-    if (!canShow()) return false;
+    var why = blockReason();
+    if (why){ dbg('차단됨', reason, '→', why); return false; }
+    dbg('노출', reason);
     isOpen = true; shownCount++; fitCard(); scrollY = window.scrollY;
     pop.classList.add('on');
     document.body.style.position = 'fixed';
@@ -885,31 +896,69 @@ body{
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && isOpen) closePop(); });
 
   var ctaArmed = false;
+
+  /* ===== 이탈 감지 트리거 =====================================================
+     (A) 데스크톱 : 마우스 커서가 화면 상단 밖으로 나갈 때
+     (B) iOS/AOS  : 뒤로가기 버튼 · 스와이프 백  → history 트랩 + popstate
+     (C) iOS/AOS  : 콘텐츠를 본 뒤 최상단으로 빠르게 튕겨 올라갈 때 (모바일 이탈 신호)
+     (D) iOS/AOS  : 앱/탭 전환으로 나갔다가 돌아왔을 때
+     =========================================================================== */
+
+  /* --- (A) 데스크톱 마우스 이탈 --- */
   document.addEventListener('mouseout', function(e){
     if (e.relatedTarget || e.toElement) return;
     if (e.clientY > 8) return;
     openPop('mouseleave');
   });
-  try {
-    history.pushState({ pt: 1 }, '');
-    window.addEventListener('popstate', function(){
-      if (isOpen) { closePop(); return; }
-      if (openPop('back')) history.pushState({ pt: 1 }, '');
-    });
-  } catch (err) {}
-  document.addEventListener('visibilitychange', function(){
-    if (document.hidden || !ctaArmed) return;
-    setTimeout(function(){ openPop('return_after_cta'); }, 400);
+
+  /* --- (B) 뒤로가기 / 스와이프 백 ---
+     history 에 더미 항목을 하나 넣어두고, 뒤로가기로 그 항목이 빠질 때 popstate 를 잡습니다.
+
+     [iOS Safari]  개입 정책이 없어 로드 직후 넣어두면 그대로 동작합니다.
+     [Chrome 계열] History Manipulation Intervention 때문에, 문서가 사용자 조작(user activation)을
+                   한 번도 받지 못한 상태라면 이 항목을 건너뛰고 popstate 를 발생시키지 않습니다.
+                   단, 조작은 pushState 앞이든 뒤든 상관없이 한 번만 있으면 플래그가 해제되므로
+                   "로드 시 즉시 push + 이후 탭/클릭" 조합으로 양쪽 OS 를 모두 커버합니다.
+                   참고: https://chromium.googlesource.com/chromium/src/+/main/docs/history_manipulation_intervention.md */
+  var histPushed = false;
+  function pushTrap(){
+    if (histPushed) return;
+    try { history.pushState({ pt: 1 }, ''); histPushed = true; dbg('history 트랩 설치'); }
+    catch (err) { dbg('history 트랩 실패', err && err.name); }
+  }
+  pushTrap();                                   /* 로드 즉시 — iOS 는 이 시점부터 동작 */
+  ['pointerdown', 'touchstart', 'touchend', 'click', 'keydown'].forEach(function(ev){
+    /* 조작이 들어오면 Chrome 의 건너뛰기 플래그가 해제됩니다.
+       (위 pushState 가 실패했던 경우를 대비해 재시도도 겸함) */
+    window.addEventListener(ev, pushTrap, { capture: true, passive: true });
   });
-  window.addEventListener('pageshow', function(e){
-    if (e.persisted && ctaArmed) setTimeout(function(){ openPop('bfcache_return'); }, 400);
+  window.addEventListener('popstate', function(){
+    if (isOpen) { closePop(); return; }
+    histPushed = false;
+    if (openPop('back')) pushTrap();             /* 재노출 여지 (maxPopupPerSession 으로 제한) */
   });
+
+  /* --- (C) 모바일: 최상단으로 빠르게 튕겨 올라갈 때 --- */
   var lastY = window.scrollY, lastT = Date.now();
   window.addEventListener('scroll', function(){
     var y = window.scrollY, t = Date.now(), dt = t - lastT || 1, v = (lastY - y) / dt;
-    if (ctaArmed && v > 1.2 && y < 140) openPop('fast_scroll_up');
+    var max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    if (!deepScrolled && y / max > 0.35){ deepScrolled = true; dbg('deepScrolled'); }
+    if ((ctaArmed || deepScrolled) && v > 1.2 && y < 140) openPop('fast_scroll_up');
     lastY = y; lastT = t;
   }, { passive: true });
+
+  /* --- (D) 앱/탭 전환 후 복귀 --- */
+  document.addEventListener('visibilitychange', function(){
+    if (document.hidden) return;
+    if (!ctaArmed && !deepScrolled) return;
+    setTimeout(function(){ openPop(ctaArmed ? 'return_after_cta' : 'return_to_tab'); }, 400);
+  });
+  window.addEventListener('pageshow', function(e){
+    if (!e.persisted) return;
+    if (!ctaArmed && !deepScrolled) return;
+    setTimeout(function(){ openPop('bfcache_return'); }, 400);
+  });
 
   /* ---------------- 8. CTA 클릭 ---------------- */
   function fireCta(src){
