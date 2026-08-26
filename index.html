@@ -167,11 +167,12 @@ body{
 }
 
 /* =========== 스크롤 리빌 =========== */
-/* [iOS Safari 주의] SVG 의 <g>/<path> 에 CSS transform 을 걸면 Safari 에서 요소가
-   통째로 사라집니다(<text> 는 정상). 리빌 대상이 전부 SVG 노드이므로 transform 을
-   쓰지 않고 opacity 만 씁니다. */
-.rv{opacity:0;transition:opacity .75s cubic-bezier(.22,.61,.36,1)}
-.rv.in{opacity:1}
+/* SVG 노드에 거는 CSS transform 자체는 Safari 에서도 정상입니다(WebKit 실측 확인).
+   translateY 단위는 SVG 사용자 좌표(=1u)이므로 화면 폭에 맞춰 함께 축소됩니다.
+   한 화면에 여러 블록이 동시에 들어올 때는 문서 순서대로 시차를 둬 순차 등장시킵니다. */
+.rv{opacity:0;transform:translateY(14px);
+  transition:opacity .68s cubic-bezier(.22,.61,.36,1),transform .68s cubic-bezier(.22,.61,.36,1)}
+.rv.in{opacity:1;transform:translateY(0)}
 
 /* =========== 3카드 롤링 배너 =========== */
 #lpSvg [id="Group 111 1"], #lpSvg [id="Group 110 1"], #lpSvg [id="Group 107 1"]{display:none}
@@ -290,7 +291,7 @@ body{
   #floatCta .hit,#floatCta .glow,#typeBar .caret{animation:none}
   #cards .slide,#pop .qty .odo .reel{transition:none}
   .fxk,.fxc{display:none}
-  .rv{opacity:1;transition:none}
+  .rv{opacity:1;transform:none;transition:none}
   #lpSvg .chip{animation:none}
 }
 </style>
@@ -1279,18 +1280,27 @@ body{
     var els = [].slice.call(document.querySelectorAll('.rv'));
     if (!els.length) return;
     function showAll(){ els.forEach(function(el){ el.classList.add('in'); }); els = []; }
+
     if (REDUCE){ showAll(); return; }
 
+    /* 같은 판정에서 한꺼번에 걸린 요소들은 문서 순서대로 0.11초씩 늦춰 순차 등장.
+       너무 길어지지 않도록 4단계까지만 시차를 줍니다. */
+    function reveal(el, i){
+      var d = Math.min(i, 4) * 0.11;
+      if (d) el.style.transitionDelay = d + 's';
+      el.classList.add('in');
+    }
     var ticking = false;
     function check(){
       ticking = false;
       if (!els.length) return;
       var vh = window.innerHeight || document.documentElement.clientHeight;
+      var step = 0;
       els = els.filter(function(el){
         var r;
-        try { r = el.getBoundingClientRect(); } catch (e) { el.classList.add('in'); return false; }
-        if (!r || (!r.height && !r.width)){ el.classList.add('in'); return false; }  /* 측정 불가 → 그냥 노출 */
-        if (r.top < vh * 0.92 && r.bottom > 0){ el.classList.add('in'); return false; }
+        try { r = el.getBoundingClientRect(); } catch (e) { reveal(el, 0); return false; }
+        if (!r || (!r.height && !r.width)){ reveal(el, 0); return false; }  /* 측정 불가 → 그냥 노출 */
+        if (r.top < vh * 0.92 && r.bottom > 0){ reveal(el, step++); return false; }
         return true;
       });
       if (!els.length) window.removeEventListener('scroll', onScroll);
